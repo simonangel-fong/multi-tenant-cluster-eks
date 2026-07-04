@@ -6,6 +6,7 @@
   - [REST API](#rest-api)
   - [Development](#development)
     - [Init](#init)
+    - [Flyway](#flyway)
 
 ---
 
@@ -72,4 +73,26 @@ curl http://127.0.0.1:8000/
 
 curl http://127.0.0.1:8000/healthz
 # {"status":"ok"}
+
+curl http://127.0.0.1:8000/readyz
+# {"status":"ready"}
+
+docker compose stop postgres
+curl -i http://127.0.0.1:8000/readyz
+```
+---
+
+### Flyway
+
+```sh
+docker compose down -v
+docker compose up -d
+docker compose logs flyway
+# voting-flyway  | Database: jdbc:postgresql://postgres:5432/voting (PostgreSQL 16.14)
+# voting-flyway  | Schema history table "public"."flyway_schema_history" does not exist yet
+# voting-flyway  | Successfully validated 1 migration (execution time 00:00.027s)
+# voting-flyway  | Creating Schema History table "public"."flyway_schema_history" ...
+# voting-flyway  | Current version of schema "public": << Empty Schema >>
+# voting-flyway  | Migrating schema "public" to version "1 - initial schema"
+# voting-flyway  | Successfully applied 1 migration to schema "public", now at version v1 (execution time 00:00.081s)
 ```
