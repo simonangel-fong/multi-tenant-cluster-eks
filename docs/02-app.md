@@ -10,6 +10,7 @@
     - [Poll](#poll)
     - [Vote](#vote)
   - [PyTest](#pytest)
+  - [Containerize](#containerize)
 
 ---
 
@@ -43,6 +44,7 @@ app/
 | 06  | poll entity   | `POST /polls`, `GET /polls`, `GET /polls/{id}`          |
 | 07  | vote + tally  | `POST /polls/{id}/vote`, `GET /polls/{id}/results`      |
 | 08  | pytest        | real-Postgres test suite covering the endpoint table    |
+| 09  | containerize  | multi-stage Dockerfile + `api` service in compose       |
 
 ---
 
@@ -178,4 +180,24 @@ docker compose up -d
 cd app
 uv sync
 uv run pytest -v
+```
+
+---
+
+## Containerize
+
+```sh
+docker compose build api
+docker compose up -d postgres
+docker compose up flyway            # migrate
+docker compose up -d api
+
+curl http://127.0.0.1:8000/healthz
+# {"status":"ok"}
+curl http://127.0.0.1:8000/readyz
+# {"status":"ready"}
+
+docker inspect --format "{{.State.Health.Status}}" voting-api
+# healthy
+
 ```

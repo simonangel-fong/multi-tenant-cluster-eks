@@ -47,5 +47,21 @@ services:
       - -connectRetries=10
       - migrate
 
+  api:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: voting-api:local
+    container_name: voting-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql+psycopg://voting:voting@postgres:5432/voting
+    ports:
+      - "8000:8000"
+
 volumes:
   pgdata:
