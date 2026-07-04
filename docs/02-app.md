@@ -1,14 +1,16 @@
-# phase 2 — backend (python, local)
+# App
 
-FastAPI service on the host, talking to the phase-1 Postgres on `localhost:5432`. No Docker, no k8s — that's phase 3+.
-
-**Done when:** two different `X-User-Id`s each cast one vote on the same poll, the tally reflects both, and a duplicate vote from the same `X-User-Id` is rejected with `409`.
+- [App](#app)
+  - [layout](#layout)
+  - [delivery phase](#delivery-phase)
+  - [REST API](#rest-api)
+  - [Development](#development)
+    - [Init](#init)
 
 ---
 
-## stack
-
-FastAPI · SQLAlchemy 2.x · Alembic · psycopg 3 · pydantic v2 + pydantic-settings · uvicorn · pytest + httpx.
+- **Goal:** a simple voting API backend.
+- **Done when:** two `X-User-Id`s can cast one vote each on the same poll, the tally is correct, and a duplicate from the same voter is rejected with `409`.
 
 ---
 
@@ -16,186 +18,43 @@ FastAPI · SQLAlchemy 2.x · Alembic · psycopg 3 · pydantic v2 + pydantic-sett
 
 ```
 app/
-├─ voting/
-│  ├─ main.py            # FastAPI app + router wiring
-│  ├─ config.py          # pydantic-settings
-│  ├─ db.py              # engine, SessionLocal, get_db
-│  ├─ models.py          # SQLAlchemy: Poll, Option, Vote
-│  ├─ schemas.py         # pydantic request/response
-│  └─ routers/{health,polls}.py
-├─ alembic/
-│  ├─ env.py             # reads DATABASE_URL from env
-│  └─ versions/0001_initial.py
-├─ alembic.ini
-├─ tests/{conftest,test_polls}.py
+├─ voting/          # FastAPI package (config, db, models, schemas, routers)
+├─ flyway/sql/      # Flyway migrations (V1__init.sql, V2__..., ...)
+├─ tests/           # pytest
 ├─ pyproject.toml
 └─ README.md
 ```
 
 ---
 
-## delivery slices
+## delivery phase
 
-One commit per slice. Don't advance until the demo passes.
-
-### slice 1a — project init
-
-- `app/pyproject.toml` with runtime deps (fastapi, uvicorn) — DB deps come in slice 1c.
-- `app/voting/__init__.py`, `app/voting/main.py` — bare `FastAPI(title="voting")` with a single `GET /` returning `{"message": "hello world"}`.
-- `app/.gitignore` — `__pycache__/`, `.venv/`, `*.egg-info/`, `.pytest_cache/`.
-- **Proves:** the project is initialized and runnable.
-- **Demo:** `uvicorn voting.main:app` starts; `curl /` → `200 {"message":"hello world"}`.
-
-### slice 1b — health endpoint + router split
-
-- `app/voting/routers/__init__.py`, `app/voting/routers/health.py` — `GET /healthz` → `{"status":"ok"}`.
-- Wire the router in `main.py` via `include_router`. Drop `/` from `main.py` (its job — prove init — is done).
-- **Proves:** the router pattern works and health checks return `200`.
-- **Demo:** `curl /healthz` → `200 {"status":"ok"}`.
-
-### slice 1c — DB config + connection
-
-- Add DB deps to `pyproject.toml`: sqlalchemy, psycopg[binary], pydantic-settings. (alembic waits for slice 2.)
-- `app/voting/config.py` — pydantic-settings `Settings` with `database_url` (default `postgresql+psycopg://voting:voting@localhost:5432/voting`).
-- `app/voting/db.py` — `engine`, `SessionLocal`, `get_db()` dependency.
-- **Proves:** the app can open a DB connection.
-- **Demo:** `python -c "from voting.db import engine; from sqlalchemy import text; print(engine.connect().execute(text('SELECT 1')).scalar())"` prints `1` against the compose DB.
-
-### slice 1d — readiness endpoint
-
-- Extend `routers/health.py` with `GET /readyz` — runs `SELECT 1` via `get_db`; returns `{"status":"ready"}` on success, raises `HTTPException(503)` on failure.
-- **Proves:** the app reports readiness based on real DB reachability.
-- **Demo:** with compose DB up → `/readyz` → `200`; `docker compose stop postgres` → `/readyz` → `503`.
-
-### slice 2 — models + alembic 0001
-
-- `voting/models.py` in SQLAlchemy 2.x `Mapped[...]` style.
-- `alembic/versions/0001_initial.py` **hand-written** to mirror `sql/01_schema.sql` exactly — columns, `uq_votes_poll_voter`, `idx_options_poll_id`, `idx_votes_poll_option`. Do not autogenerate.
-- **Demo:** `alembic upgrade head` on a fresh DB produces a schema byte-identical to the SQL init path (verify via `pg_dump --schema-only` diff).
-
-### slice 3 — poll create + read
-
-- `voting/schemas.py` — `PollCreate`, `PollOut`, `OptionOut`.
-- `voting/routers/polls.py` — `POST /polls`, `GET /polls`, `GET /polls/{id}` (detail eager-loads options via `selectinload`).
-- **Demo:** `curl` create → `201`, list → returns it, detail → returns options.
-
-### slice 4 — vote + tally
-
-- Extend `schemas.py` with `VoteIn`, `VoteOut`, `ResultsOut`.
-- Extend `routers/polls.py` with `POST /polls/{id}/vote` and `GET /polls/{id}/results` (see [vote semantics](#vote-semantics), [tally query](#tally-query)).
-- **Demo:** two `X-User-Id`s vote different options → both `201`; same voter twice → `409`; results include zero-vote options. **This is the phase-2 "done when".**
-
-### slice 5 — tests
-
-- `tests/conftest.py` — real Postgres against `TEST_DATABASE_URL`, schema recreated per session, per-test transactional rollback, `TestClient` with `get_db` override.
-- `tests/test_polls.py` — the [7 test cases](#test-cases).
-- **Demo:** `pytest` green.
-
-### slice 6 — dev docs
-
-- `app/README.md` with the [local dev workflow](#local-dev-workflow).
-- **Demo:** a fresh clone follows the README end-to-end with no extra questions.
+| #   | phase         | description                                             |
+| --- | ------------- | ------------------------------------------------------- |
+| 01  | project init  | initialize FastAPI app; `GET /` → hello world           |
+| 02  | health        | add `/healthz`                                          |
+| 03  | db connection | add config + engine; prove `SELECT 1`                   |
+| 04  | readiness     | add `/readyz`                                           |
+| 05  | migration     | Flyway service in compose runs `V1__initial_schema.sql` |
+| 06  | poll entity   | `POST /polls`, `GET /polls`, `GET /polls/{id}`          |
+| 07  | vote + tally  | `POST /polls/{id}/vote`, `GET /polls/{id}/results`      |
+| 08  | pytest        | real-Postgres test suite covering the endpoint table    |
 
 ---
 
-## reference
+## REST API
 
-### config
-
-`voting/config.py` via `pydantic-settings`. No `.env` committed.
-
-| Setting        | Env var        | Default                                                    |
-| -------------- | -------------- | ---------------------------------------------------------- |
-| `database_url` | `DATABASE_URL` | `postgresql+psycopg://voting:voting@localhost:5432/voting` |
-| `log_level`    | `LOG_LEVEL`    | `INFO`                                                     |
-
-Phase 3 swaps `DATABASE_URL` to the compose service name; phase 4 injects it via a k8s Secret. No code change per phase.
-
-### data access
-
-- One `Engine` per process, one `sessionmaker` in `voting/db.py`.
-- `get_db()` yields a session, closes in `finally`.
-- Eager-load anything returned across the request boundary (`selectinload(Poll.options)`) — no lazy loads on detached instances.
-
-### endpoints
-
-All JSON. `X-User-Id` required only on `POST /vote` (missing/blank → `400`).
+All JSON. `X-User-Id` header required only on `POST /vote` (missing/blank → `400`).
 
 | Method | Path                  | Body                             | Response (success)                                                     | Errors                                                                           |
 | ------ | --------------------- | -------------------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| POST   | `/polls`              | `{title, options[], closes_at?}` | `201 {id, title, options:[{id,label}], created_at, closes_at}`         | `422` empty title or <2 options                                                  |
+| POST   | `/polls`              | `{title, options[], closes_at?}` | `201 {id, title, options:[{id,label}], created_at, closes_at}`         | `422` empty title / <2 options / duplicate labels / past `closes_at`             |
 | GET    | `/polls`              | —                                | `200 [{id, title, created_at, closes_at}, ...]`                        | —                                                                                |
 | GET    | `/polls/{id}`         | —                                | `200 {id, title, options:[{id,label}], created_at, closes_at}`         | `404`                                                                            |
 | POST   | `/polls/{id}/vote`    | `{option_id}`                    | `201 {poll_id, option_id, voter_id, created_at}`                       | `400` no `X-User-Id`; `403` closed; `404` poll/option not found; `409` duplicate |
 | GET    | `/polls/{id}/results` | —                                | `200 {poll_id, total_votes, tallies:[{option_id, label, votes}, ...]}` | `404`                                                                            |
 | GET    | `/healthz`            | —                                | `200 {"status":"ok"}`                                                  | —                                                                                |
 | GET    | `/readyz`             | —                                | `200 {"status":"ready"}` if `SELECT 1` works                           | `503` DB unreachable                                                             |
-
-### vote semantics
-
-- **Closed** = `closes_at IS NOT NULL AND closes_at < now()`. App-enforced, not DB.
-- **Duplicate** = same `(poll_id, voter_id)`. Pre-check with `SELECT` for a clean 409, but the `uq_votes_poll_voter` constraint is authoritative — catch `IntegrityError` for the race.
-- **Cross-poll option** = `option_id` must belong to the poll in the URL. FKs alone allow the mismatch; app must reject with `404`.
-
-### tally query
-
-```sql
-SELECT o.id, o.label, COUNT(v.id) AS votes
-FROM options o
-LEFT JOIN votes v ON v.option_id = o.id
-WHERE o.poll_id = :poll_id
-GROUP BY o.id, o.label
-ORDER BY o.id;
-```
-
-`LEFT JOIN` so zero-vote options still appear.
-
-### migrations
-
-- `alembic init alembic` inside `app/`. `env.py` reads `DATABASE_URL` from env, not `alembic.ini`.
-- `0001_initial.py` hand-written; verify against `sql/01_schema.sql` with `pg_dump --schema-only`.
-- Clean slate: `docker compose down -v && docker compose up -d && alembic upgrade head`.
-- `sql/01_schema.sql` stays as the raw-SQL onboarding path, but Alembic is now the source of truth.
-
-### test cases
-
-Real Postgres (not SQLite — unique/FK/cascade semantics differ). `TEST_DATABASE_URL` defaults to `postgresql+psycopg://voting:voting@localhost:5432/voting_test`.
-
-1. Create poll with 3 options → `201`, IDs returned.
-2. Two `X-User-Id`s vote different options → both `201`, tally is 1/1.
-3. Same `X-User-Id` votes twice → second → `409`.
-4. Vote with `option_id` from a different poll → `404`.
-5. Vote on a poll with `closes_at` in the past → `403`.
-6. `POST /vote` missing `X-User-Id` → `400`.
-7. `GET /results` on a poll with zero votes → all options with `votes: 0`.
-
-### local dev workflow
-
-```sh
-# terminal 1: DB (from repo root)
-docker compose up -d
-
-# terminal 2: app (from app/)
-uv venv && uv pip install -e ".[dev]"    # or pip
-alembic upgrade head
-uvicorn voting.main:app --reload --port 8000
-
-# smoke test
-curl -s localhost:8000/healthz
-curl -s -X POST localhost:8000/polls \
-  -H 'content-type: application/json' \
-  -d '{"title":"cloud?","options":["AWS","GCP","Azure"]}'
-curl -s -X POST localhost:8000/polls/1/vote \
-  -H 'content-type: application/json' -H 'X-User-Id: alice' \
-  -d '{"option_id": 1}'
-curl -s localhost:8000/polls/1/results
-```
-
----
-
-## out of scope
-
-Auth (Cognito is phase 8-ish), rate limiting, CORS beyond `*`, Dockerfile (phase 3), metrics/tracing (phase 8), pagination on `GET /polls`.
 
 ---
 
@@ -205,146 +64,12 @@ Auth (Cognito is phase 8-ish), rate limiting, CORS beyond `*`, Dockerfile (phase
 
 ```sh
 cd app
-python -m venv .venv
-.\venv\Scripts\Activate.ps1
-python.exe -m pip install --upgrade pip
+uv sync
+uv run uvicorn voting.main:app --reload
 
-# Installing build dependencies
-pip install -e .
-
-
-# start the server
-uvicorn voting.main:app --port 8000
-# INFO:     Started server process [22932]
-# INFO:     Waiting for application startup.
-# INFO:     Application startup complete.
-# INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-
-# confirm
-curl http://localhost:8000/
+curl http://127.0.0.1:8000/
 # {"message":"hello world"}
 
-# GET /healthz
-curl http://localhost:8000/healthz
+curl http://127.0.0.1:8000/healthz
 # {"status":"ok"}
-
-curl http://localhost:8000/
-# {"detail":"Not Found"}
-```
-
----
-
-### DB Connection
-
-```sh
-# install the new deps
-pip install -e app/
-
-# spin up database
-docker compose up -d
-# SQL-init schema
-docker exec voting-postgres pg_dump -U voting -d voting --schema-only > sql-init.schema.sql
-
-# start the server
-uvicorn voting.main:app --port 8000
-
-# test conn
-python -c "from voting.db import engine; from sqlalchemy import text; print(engine.connect().execute(text('SELECT 1')).scalar())"
-# 1
-
-curl http://localhost:8000/readyz
-# {"status":"ready"}
-
-# ##########
-# alternative
-# ##########
-docker compose stop postgres
-curl http://localhost:8000/readyz
-# {"detail":"db unreachable"}
-```
-
----
-
-### DB Migration
-
-```sh
-# dump the SQL-init schema from inside the container
-docker exec voting-postgres pg_dump -U voting -d voting --schema-only > sql-init.schema.sql
-
-docker exec voting-postgres psql -U voting -d postgres -c "DROP DATABASE voting;"
-# DROP DATABASE
-docker exec voting-postgres psql -U voting -d postgres -c "CREATE DATABASE voting;"
-# CREATE DATABASE
-
-cd app
-alembic upgrade head
-```
-
----
-
-### CRUD
-
-```sh
-# start server
-uvicorn voting.main:app --port 8000
-
-curl http://localhost:8000/healthz
-# {"status":"ok"}
-curl http://localhost:8000/readyz
-# {"status":"ready"}
-
-# create a poll
-curl -s -X POST http://localhost:8000/polls -H "content-type: application/json" --data-raw "{\"title\":\"cloud?\",\"options\":[\"AWS\",\"GCP\",\"Azure\"]}"
-# {"id": 1,"title": "cloud?","created_at": "2026-07-04T20:03:27.800788Z","closes_at": null,"options": [{"id": 1,"label": "AWS"},{"id": 2,"label": "GCP"},{"id": 3,"label": "Azure"}]}
-
-# list polls
-curl -s http://localhost:8000/polls
-# [{"id": 1,"title": "cloud?","created_at": "2026-07-04T20:03:27.800788Z","closes_at": null}]
-
-# poll details
-curl -s http://localhost:8000/polls/1
-# {"id":1,"title":"cloud?","created_at":"2026-07-04T20:03:27.800788Z","closes_at":null,"options":[{"id":1,"label":"AWS"},{"id":2,"label":"GCP"},{"id":3,"label":"Azure"}]}
-
-# invalid poll
-curl http://localhost:8000/polls/99999
-# {"detail": "poll not found"}
-
-# validation: empty title 422
-curl -i -X POST http://localhost:8000/polls   -H "content-type: application/json" -d "{\"title\":\"\",\"options\":[\"AWS\",\"GCP\"]}"
-# HTTP/1.1 422 Unprocessable Content
-# date: Sat, 04 Jul 2026 20:16:01 GMT
-# server: uvicorn
-# content-length: 145
-# content-type: application/json
-
-# validation: option 422
-curl -i -X POST http://localhost:8000/polls -H "content-type: application/json" -d "{\"title\":\"cloud?\",\"options\":[\"AWS\"]}"
-# HTTP/1.1 422 Unprocessable Content
-# date: Sat, 04 Jul 2026 20:17:53 GMT
-# server: uvicorn
-# content-length: 201
-# content-type: application/json
-
-# {"detail":[{"type":"too_short","loc":["body","options"],"msg":"List should have at least 2 items after validation, not 1","input":["AWS"],"ctx":{"field_type":"List","min_length":2,"actual_length":1}}]}
-
-# validation: closes_at in past 422
-curl -i -X POST http://localhost:8000/polls -H "content-type: application/json" -d "{\"title\":\"expired\",\"options\":[\"a\",\"b\"],\"closes_at\":\"2020-01-01T00:00:00Z\"}"
-# HTTP/1.1 422 Unprocessable Content
-# date: Sat, 04 Jul 2026 20:18:52 GMT
-# server: uvicorn
-# content-length: 205
-# content-type: application/json
-
-# {"detail":[{"type":"value_error","loc":["body"],"msg":"Value error, closes_at must be in the future","input":{"title":"expired","options":["a","b"],"closes_at":"2020-01-01T00:00:00Z"},"ctx":{"error":{}}}]}
-
-# validation: duplicate option labels 422
-curl -i -X POST http://localhost:8000/polls -H "content-type: application/json" -d "{\"title\":\"dup\",\"options\":[\"AWS\",\"AWS\"]}"
-# HTTP/1.1 422 Unprocessable Content
-# date: Sat, 04 Jul 2026 20:19:38 GMT
-# server: uvicorn
-# content-length: 151
-# content-type: application/json
-
-# {"detail":[{"type":"value_error","loc":["body","options"],"msg":"Value error, option labels must be unique","input":["AWS","AWS"],"ctx":{"error":{}}}]}
-
 ```

@@ -1,15 +1,13 @@
-# main.py
 from fastapi import FastAPI
 
-from voting.routers import health, polls
+app = FastAPI(title="Voting API")
 
-# Initialize the main FastAPI application instance
-app = FastAPI(title="voting")
 
-# ####################
-# routes
-# ####################
-# healthz/, readyz/
-app.include_router(health.router)
-# polls/
-app.include_router(polls.router)
+@app.get("/")
+def root():
+    return {"message": "hello world"}
+
+
+@app.get("/healthz")
+def healthz():
+    return {"status": "ok"}
