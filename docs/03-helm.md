@@ -419,3 +419,9 @@ helm test voting
 # Last Completed: Sat Jul  4 22:55:14 2026
 # Phase:          Succeeded
 ```
+
+```sh
+#  tag both — v0.2.0 for the chart milestone, chart-v0.2.0 for the tarball
+git tag v0.2.0
+git tag chart-v0.2.0
+```
