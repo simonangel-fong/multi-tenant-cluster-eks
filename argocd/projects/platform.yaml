@@ -6,11 +6,12 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  description: Cluster add-ons (ALBC, Karpenter)
+  description: Cluster add-ons (ESO, ALBC, Karpenter)
   sourceRepos:
     - https://github.com/simonangel-fong/project-eks-argocd
     - https://aws.github.io/eks-charts
     - public.ecr.aws/karpenter
+    - https://charts.external-secrets.io
   destinations:
     - name: https://kubernetes.default.svc
       namespace: '*'
