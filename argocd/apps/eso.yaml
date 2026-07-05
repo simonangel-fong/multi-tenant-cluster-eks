@@ -6,7 +6,8 @@ metadata:
   finalizers:
     - argocd.argoproj.io/resources-finalizer
 spec:
-  project: platform
+  project: default
+  # project: platform
   source:
     repoURL: https://charts.external-secrets.io
     chart: external-secrets
