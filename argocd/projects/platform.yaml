@@ -15,10 +15,8 @@ spec:
     - public.ecr.aws/karpenter
     - https://charts.external-secrets.io
   destinations:
-    - name: https://kubernetes.default.svc
+    - server: https://kubernetes.default.svc
       namespace: '*'
-  sourceNamespaces:
-    - argocd
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'

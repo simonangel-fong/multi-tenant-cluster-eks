@@ -12,10 +12,8 @@ spec:
   sourceRepos:
     - https://github.com/simonangel-fong/project-eks-argocd
   destinations:
-    - name: https://kubernetes.default.svc
+    - server: https://kubernetes.default.svc
       namespace: voting
-  sourceNamespaces:
-    - argocd
   clusterResourceWhitelist:
     - group: gateway.networking.k8s.io
       kind: '*'
