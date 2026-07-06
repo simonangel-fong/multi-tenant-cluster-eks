@@ -1,6 +1,6 @@
 image:
   repository: REPLACE_ME.dkr.ecr.REPLACE_REGION.amazonaws.com/voting-api
-  tag: REPLACE_ME_SHA
+  tag: v-metrics
   pullPolicy: IfNotPresent
 
 replicaCount: 2

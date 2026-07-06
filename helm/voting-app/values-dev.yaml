@@ -1,5 +1,6 @@
 image:
   pullPolicy: Always
+  tag: v-metrics
 
 gateway:
   enabled: false
