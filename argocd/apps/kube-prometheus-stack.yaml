@@ -14,6 +14,8 @@ spec:
     helm:
       releaseName: kps
       values: |
+        crds:
+          enabled: false                 # installed by prometheus-operator-crds app
         prometheus:
           prometheusSpec:
             retention: 7d
