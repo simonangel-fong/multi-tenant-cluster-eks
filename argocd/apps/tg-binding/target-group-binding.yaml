@@ -4,7 +4,7 @@ metadata:
   name: voting-api
   namespace: voting
 spec:
-  targetGroupARN: arn:aws:elasticloadbalancing:ca-central-1:099139718958:targetgroup/voting-dev-placeholder/9fc53cd735776cb3
+  targetGroupARN: arn:aws:elasticloadbalancing:ca-central-1:099139718958:loadbalancer/app/voting-dev-alb/20f92b63fc1eddc3
   targetType: ip
   serviceRef:
     name: voting-app-api
