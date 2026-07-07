@@ -18,7 +18,7 @@ spec:
       values: |
         clusterName: voting-dev
         region: ca-central-1
-        vpcId: vpc-00938891f15faca7a
+        vpcId: vpc-010fe76d9014e9fca
         serviceAccount:
           create: true
           name: aws-load-balancer-controller
