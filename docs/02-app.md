@@ -199,10 +199,7 @@ uv run pytest -v
 ## Containerize
 
 ```sh
-docker compose build api
-docker compose up -d postgres
-docker compose up flyway            # migrate
-docker compose up -d api
+docker compose up -d
 
 curl http://127.0.0.1:8000/
 # {"app":"voting api","version":"0.1.0"}

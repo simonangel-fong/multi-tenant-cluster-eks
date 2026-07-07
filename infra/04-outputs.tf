@@ -3,11 +3,6 @@
 #   value       = module.vpc.vpc_id
 # }
 
-output "placeholder_tg_arn" {
-  description = "Placeholder target group ARN — paste into TargetGroupBinding manifest (7.5)."
-  value       = aws_lb_target_group.placeholder.arn
-}
-
 # ##############################
 # Karpenter (7.6) — paste these into argocd/apps/karpenter.yaml values
 # ##############################

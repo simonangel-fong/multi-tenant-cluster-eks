@@ -1,8 +1,7 @@
 
 locals {
-  eso_test_secret_name = "eks-argocd/test/hello"
-  eso_namespace        = "external-secrets"
-  eso_service_account  = "external-secrets"
+  eso_namespace       = "external-secrets"
+  eso_service_account = "external-secrets"
 }
 
 
@@ -25,7 +24,7 @@ data "aws_iam_policy_document" "eso_read" {
       "secretsmanager:GetSecretValue",
       "secretsmanager:DescribeSecret",
     ]
-    resources = [aws_secretsmanager_secret.eso_test.arn]
+    resources = [aws_secretsmanager_secret.eso_cloudflare.arn]
   }
 }
 
@@ -50,15 +49,12 @@ resource "aws_eks_pod_identity_association" "eso" {
 # ################################################################################
 # ESO smoke test — Secrets Manager secret + IAM + Pod Identity association
 # ################################################################################
-resource "aws_secretsmanager_secret" "eso_test" {
-  name                    = local.eso_test_secret_name
-  description             = "ESO smoke-test secret (phase 7.3)"
-  recovery_window_in_days = 0
+resource "aws_secretsmanager_secret" "eso_cloudflare" {
+  name = "${local.common_name}/cloudflare-api-token"
 }
 
-resource "aws_secretsmanager_secret_version" "eso_test" {
-  secret_id = aws_secretsmanager_secret.eso_test.id
-  secret_string = jsonencode({
-    hello = "world"
-  })
+resource "aws_secretsmanager_secret_version" "cloudflare" {
+  secret_id     = aws_secretsmanager_secret.eso_cloudflare.id
+  secret_string = jsonencode({ apiToken = var.cloudflare_api_token })
 }
+
