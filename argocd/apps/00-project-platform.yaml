@@ -12,6 +12,7 @@ spec:
     - https://aws.github.io/eks-charts
     - public.ecr.aws/karpenter
     - https://charts.external-secrets.io
+    - https://istio-release.storage.googleapis.com/charts
   destinations:
     - server: https://kubernetes.default.svc
       namespace: '*'
