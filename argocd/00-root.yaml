@@ -10,10 +10,7 @@ spec:
   source:
     repoURL: https://github.com/simonangel-fong/project-eks-argocd
     targetRevision: master
-    path: argocd
-    directory:
-      recurse: true
-      exclude: '{00-root.yaml,eso-resources/**,karpenter-nodes/**}'
+    path: argocd/apps
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
