@@ -14,7 +14,7 @@ spec:
       {{- with .Values.gateway.parentRef.namespace }}
       namespace: {{ . }}
       {{- end }}
-      sectionName: http
+      sectionName: {{ .Values.gateway.sectionName | default "https" }}
   hostnames:
     - {{ .Values.gateway.host | quote }}
   rules:

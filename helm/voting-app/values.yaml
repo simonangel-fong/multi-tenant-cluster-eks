@@ -26,6 +26,7 @@ gateway:
   createGateway: true
   className: nginx
   host: voting.local
+  sectionName: https
   parentRef:
     name: ""
     namespace: ""
