@@ -1,9 +1,9 @@
+# eks-eso.tf
 
 locals {
   eso_namespace       = "external-secrets"
   eso_service_account = "external-secrets"
 }
-
 
 # ##############################
 # IAM role: ESO
@@ -49,9 +49,9 @@ resource "aws_eks_pod_identity_association" "eso" {
   role_arn        = aws_iam_role.eso.arn
 }
 
-# ################################################################################
-# ESO Secret
-# ################################################################################
+# ##############################
+# ESO Secrets
+# ##############################
 resource "aws_secretsmanager_secret" "eso_cloudflare" {
   name = "${local.common_name}/cloudflare-api-token"
 }

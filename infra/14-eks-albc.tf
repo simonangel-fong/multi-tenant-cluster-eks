@@ -1,7 +1,8 @@
-# ################################################################################
-# AWS Load Balancer Controller — IAM + Pod Identity
-# ################################################################################
+# eks-albc.tf
 
+# ##############################
+# AWS Load Balancer Controller
+# ##############################
 locals {
   albc_namespace       = "kube-system"
   albc_service_account = "aws-load-balancer-controller"

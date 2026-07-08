@@ -1,11 +1,8 @@
-# ################################################################################
-# Karpenter — controller IAM role, node IAM role, SQS interruption queue,
-# EventBridge rules, access entry, Pod Identity association.
-#
-# Helm chart is installed by Argo CD (argocd/apps/karpenter.yaml); this file
-# only creates the AWS-side plumbing the chart needs.
-# ################################################################################
+# eks-karpenter.tf
 
+# ##############################
+# Karpenter
+# ##############################
 module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
   version = "~> 21.0"
