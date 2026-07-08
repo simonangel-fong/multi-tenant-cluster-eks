@@ -49,7 +49,7 @@ resource "aws_eks_pod_identity_association" "eso" {
 }
 
 # ################################################################################
-# ESO smoke test — Secrets Manager secret + IAM + Pod Identity association
+# ESO Secret
 # ################################################################################
 resource "aws_secretsmanager_secret" "eso_cloudflare" {
   name = "${local.common_name}/cloudflare-api-token"
