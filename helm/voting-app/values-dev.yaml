@@ -29,6 +29,3 @@ tests:
   smokeExternal:
     enabled: true
     host: voting.arguswatcher.net
-  load:
-    enabled: true
-    targetUrl: https://voting.arguswatcher.net

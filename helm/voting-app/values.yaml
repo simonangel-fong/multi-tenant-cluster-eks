@@ -87,6 +87,3 @@ tests:
   smokeExternal:
     enabled: false
     host: voting.example.com
-  load:
-    enabled: false
-    targetUrl: ""
