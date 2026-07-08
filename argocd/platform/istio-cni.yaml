@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: 08-istio-cni
+  name: istio-cni
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-13"

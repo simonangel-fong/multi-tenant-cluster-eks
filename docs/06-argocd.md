@@ -1,128 +1,131 @@
-# ArgoCD
+# EKS Platform - ArgoCD Runbook
 
-goal
+[Back](../README.md)
 
-- ArgoCD manages all in-cluster workloads via GitOps
-- app-of-apps: one root `Application`
-- install add-ons and votting app
+- [EKS Platform - ArgoCD Runbook](#eks-platform---argocd-runbook)
+  - [ArgoCD - repo layout](#argocd---repo-layout)
+  - [Login](#login)
+  - [Bootstrap](#bootstrap)
+  - [Onboarding a New Application](#onboarding-a-new-application)
+  - [Debug](#debug)
 
 ---
 
-## repo layout
+## ArgoCD - repo layout
 
 ```
 argocd/
-├─ 01-root.yaml          # app-of-apps entry point
-└─ apps/
+├─ root.yaml       # app-of-apps entry point → renders bootstrap/
+├─ bootstrap/      # three child app-of-apps that render projects/, platform/, workloads/
+├─ projects/       # AppProject CRs (guardrails: allowed repos, namespaces, resources per team)
+├─ platform/       # cluster addons owned by the platform team (ESO, Karpenter, ALBC, Istio, etc.)
+└─ workloads/      # user-facing apps owned by dev teams (voting-app, future apps)
 ```
 
----
-
-## delivery phases
-
-| #    | phase                    | description                                                                                                                                   |
-| ---- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 7.1  | bootstrap root           | create app-of-apps                                                                                                                            |
-| 7.2  | install ESO              | deploy eso via helm;                                                                                                                          |
-| 7.3  | test eso                 | add sample `aws secret` via terraform; verify the sample secret in cluster via ESO                                                            |
-| 7.4  | albc                     | install albc                                                                                                                                  |
-| 7.5  | TG binding               | create ssm parameter to store TG arn; `TargetGroupBinding` reference via ESO                                                                  |
-| 7.6  | karpenter                | configure karpenter in TF codes; install karpenter via helm                                                                                   |
-| 7.7  | configure node pool      | create node pool; test pod schedules by a sample pod                                                                                          |
-| 7.8  | voting-app               | update the app values; deploy in cluster                                                                                                      |
-| 7.9  | ~~expose traffic http~~  | **skipped** — TF-managed ALB + `TargetGroupBinding` already exposes HTTP; Gateway API adds no value for a single-service topology             |
-| 7.10 | ~~install cert-manager~~ | **deferred** — revisit when Istio lands; Istio's Citadel handles workload mTLS, cert-manager only needed if a public listener requires DNS-01 |
-| 7.11 | enable tls               | ACM cert (DNS-validated via Route53) on the ALB/API GW; TF-native, no cert-manager dependency                                                 |
-| 7.12 | ~~install e-dns~~        | **deferred** — DNS currently managed in TF (Cloudflare provider); revisit in refactor stage to migrate hostname ownership from TF to cluster (Istio ingress, per-service records) |
-| 7.13 | ~~configure e-dns~~      | **deferred** — see 7.12                                                                                                                       |
+- ordering: `argocd.argoproj.io/sync-wave` annotations (lower waves sync first). Filenames do not carry ordering.
 
 ---
 
-## Development
+## Login
+
+Required before any admin action. Points kubeconfig at the cluster, exposes the ArgoCD UI locally, and authenticates the `argocd` CLI.
 
 ```sh
 aws eks update-kubeconfig --region ca-central-1 --name voting-dev
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode; echo
 
+# open the UI locally
 kubectl -n argocd port-forward svc/argocd-server 8080:443
 
-kubectl apply -f argocd/00-root.yaml
+# admin password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode; echo
 
-kubectl -n argocd patch app/00-root -p '{"metadata":{"finalizers":[]}}' --type merge
-kubectl -n argocd patch app/eso -p '{"metadata":{"finalizers":[]}}' --type merge
-kubectl -n argocd patch app/tg-binding -p '{"metadata":{"finalizers":[]}}' --type merge
+# CLI login (once port-forward is running)
+argocd login localhost:8080 --username admin --insecure
+
+# list applications / projects
+kubectl -n argocd get applications
+kubectl -n argocd get appprojects
+argocd app list
 ```
 
-- ESO
+---
+
+## Bootstrap
+
+One-time setup for a fresh cluster. Applying `root.yaml` triggers the app-of-apps chain: `root` → `bootstrap/` → `projects/` + `platform/` + `workloads/`. From that point on, Argo self-manages via git.
 
 ```sh
-kubectl -n external-secrets get sa
+aws eks update-kubeconfig --region ca-central-1 --name voting-dev
+
+# hand control to the root app-of-apps
+kubectl apply -f argocd/root.yaml
 ```
 
-- Confirm
+---
+
+## Onboarding a New Application
+
+Platform team lands the guardrail (`AppProject`); dev team lands the workload (`Application`). Two separate PRs, clear ownership.
+
+**Platform team — guardrail PR:**
+
+- Gather requirements from the dev team: app name, namespace, target repo, cluster-scoped resources needed (e.g. `HTTPRoute`), IAM/IRSA needs.
+- Add an `AppProject` under `projects/<team>.yaml` scoping `sourceRepos`, `destinations` (namespace), `clusterResourceWhitelist`, and (optional) `roles` for team RBAC.
+- Update `CODEOWNERS` so `workloads/<app>/` requires dev-team review.
+- Provision any prerequisite infra (IRSA, DNS, RDS) via Terraform.
+
+**Dev team — workload PR:**
+
+- Add the Helm chart or manifests under `helm/<app>/` (or a separate repo).
+- Add `workloads/<app>/application.yaml` with `spec.project: <team>` and `spec.destination.namespace: <ns>` matching the `AppProject`.
+- Merge to `master` — the `workloads` app-of-apps picks it up automatically.
+
+**Verification:**
+
+- `argocd app list` shows the new app as `Synced` and `Healthy`.
+- `argocd app get <app>` shows `Project: <team>` (not `default`) — confirms the guardrail is enforced.
+
+---
+
+## Debug
+
+Common commands for diagnosing and recovering stuck ArgoCD applications.
 
 ```sh
-curl -i https://voting.arguswatcher.net/healthz
-# HTTP/1.1 200 OK
-# Date: Mon, 06 Jul 2026 18:59:40 GMT
-# Content-Type: application/json
-# Content-Length: 15
-# Connection: keep-alive
-# server: uvicorn
-# apigw-requestid: AGQskhbyYosEMkg=
+# --- inspect ---
+kubectl -n argocd get app <name> -o yaml
+kubectl -n argocd describe app <name>
+argocd app get <name>
+argocd app history <name>
 
-# {"status":"ok"}
+# --- force a sync ---
+argocd app sync <name>
+argocd app sync <name> --prune
+argocd app sync <name> --force --replace     # last resort: server-side replace
 
-curl -v https://voting.arguswatcher.net/healthz
-# * Host voting.arguswatcher.net:443 was resolved.
-# * IPv6: (none)
-# * IPv4: 16.55.13.83, 15.222.154.84
-# *   Trying 16.55.13.83:443...
-# * Connected to voting.arguswatcher.net (16.55.13.83) port 443
-# * ALPN: curl offers h2,http/1.1
-# * TLSv1.3 (OUT), TLS handshake, Client hello (1):
-# *  CAfile: /etc/ssl/certs/ca-certificates.crt
-# *  CApath: /etc/ssl/certs
-# * TLSv1.3 (IN), TLS handshake, Server hello (2):
-# * TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
-# * TLSv1.3 (IN), TLS handshake, Certificate (11):
-# * TLSv1.3 (IN), TLS handshake, CERT verify (15):
-# * TLSv1.3 (IN), TLS handshake, Finished (20):
-# * TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
-# * TLSv1.3 (OUT), TLS handshake, Finished (20):
-# * SSL connection using TLSv1.3 / TLS_AES_128_GCM_SHA256 / X25519 / RSASSA-PSS
-# * ALPN: server accepted h2
-# * Server certificate:
-# *  subject: CN=voting.arguswatcher.net
-# *  start date: Jul  6 00:00:00 2026 GMT
-# *  expire date: Jan 19 23:59:59 2027 GMT
-# *  subjectAltName: host "voting.arguswatcher.net" matched cert's "voting.arguswatcher.net"
-# *  issuer: C=US; O=Amazon; CN=Amazon RSA 2048 M01
-# *  SSL certificate verify ok.
-# *   Certificate level 0: Public key type RSA (2048/112 Bits/secBits), signed using sha256WithRSAEncryption
-# *   Certificate level 1: Public key type RSA (2048/112 Bits/secBits), signed using sha256WithRSAEncryption
-# *   Certificate level 2: Public key type RSA (2048/112 Bits/secBits), signed using sha256WithRSAEncryption
-# * using HTTP/2
-# * [HTTP/2] [1] OPENED stream for https://voting.arguswatcher.net/healthz
-# * [HTTP/2] [1] [:method: GET]
-# * [HTTP/2] [1] [:scheme: https]
-# * [HTTP/2] [1] [:authority: voting.arguswatcher.net]
-# * [HTTP/2] [1] [:path: /healthz]
-# * [HTTP/2] [1] [user-agent: curl/8.5.0]
-# * [HTTP/2] [1] [accept: */*]
-# > GET /healthz HTTP/2
-# > Host: voting.arguswatcher.net
-# > User-Agent: curl/8.5.0
-# > Accept: */*
-# >
-# * TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
-# < HTTP/2 200
-# < date: Mon, 06 Jul 2026 19:00:02 GMT
-# < content-type: application/json
-# < content-length: 15
-# < server: uvicorn
-# < apigw-requestid: AGQv6gqG4osEMHw=
-# <
-# * Connection #0 to host voting.arguswatcher.net left intact
-# {"status":"ok"}
+# --- clear a stuck operation (app shows "operation in progress" forever) ---
+kubectl -n argocd patch app/<name> --type merge -p '{"status":{"operationState":null},"operation":null}'
+argocd app terminate-op <name>
+
+# --- refresh cache (git out of sync with UI) ---
+argocd app get <name> --refresh
+argocd app get <name> --hard-refresh
+
+# --- remove finalizer so a stuck app can be deleted ---
+kubectl -n argocd patch app/<name> --type merge -p '{"metadata":{"finalizers":[]}}'
+kubectl -n argocd delete app <name>
+
+# examples from this repo
+kubectl -n argocd patch app/root            --type merge -p '{"metadata":{"finalizers":[]}}'
+kubectl -n argocd patch app/platform        --type merge -p '{"metadata":{"finalizers":[]}}'
+kubectl -n argocd patch app/eso             --type merge -p '{"metadata":{"finalizers":[]}}'
+kubectl -n argocd patch app/karpenter       --type merge -p '{"metadata":{"finalizers":[]}}'
+kubectl -n argocd patch app/istio-gateway   --type merge -p '{"metadata":{"finalizers":[]}}'
+
+# --- nuclear: delete without cascading to cluster resources ---
+argocd app delete <name> --cascade=false
+
+# --- controller logs ---
+kubectl -n argocd logs -l app.kubernetes.io/name=argocd-application-controller --tail=200 -f
+kubectl -n argocd logs -l app.kubernetes.io/name=argocd-repo-server --tail=200 -f
 ```

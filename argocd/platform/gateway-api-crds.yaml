@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: 06-gateway-api-crds
+  name: gateway-api-crds
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-16"

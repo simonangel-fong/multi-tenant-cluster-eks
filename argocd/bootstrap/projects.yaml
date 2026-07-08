@@ -1,27 +1,24 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: 09-ztunnel
+  name: projects
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "-12"
+    argocd.argoproj.io/sync-wave: "-100"
   finalizers:
     - argocd.argoproj.io/resources-finalizer
 spec:
-  project: platform
+  project: default
   source:
-    repoURL: https://istio-release.storage.googleapis.com/charts
-    chart: ztunnel
-    targetRevision: 1.30.1
-    helm:
-      releaseName: ztunnel
+    repoURL: https://github.com/simonangel-fong/project-eks-argocd
+    targetRevision: master
+    path: argocd/projects
   destination:
     server: https://kubernetes.default.svc
-    namespace: istio-system
+    namespace: argocd
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
+      - ApplyOutOfSyncOnly=true

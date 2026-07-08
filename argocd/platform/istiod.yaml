@@ -1,24 +1,29 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: 02-eso-resources
+  name: istiod
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "-10"
+    argocd.argoproj.io/sync-wave: "-14"
   finalizers:
     - argocd.argoproj.io/resources-finalizer
 spec:
   project: platform
   source:
-    repoURL: https://github.com/simonangel-fong/project-eks-argocd
-    targetRevision: master
-    path: argocd/eso-resources
+    repoURL: https://istio-release.storage.googleapis.com/charts
+    chart: istiod
+    targetRevision: 1.30.2
+    helm:
+      values: |
+        profile: ambient
+
   destination:
     server: https://kubernetes.default.svc
-    namespace: external-secrets
+    namespace: istio-system
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true

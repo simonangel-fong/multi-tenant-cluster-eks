@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: 04-karpenter-nodes
+  name: karpenter-nodes
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://github.com/simonangel-fong/project-eks-argocd
     targetRevision: master
-    path: argocd/karpenter-nodes
+    path: argocd/platform/karpenter-nodes
     directory:
       recurse: true
   destination:
