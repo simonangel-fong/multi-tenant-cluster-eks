@@ -28,7 +28,9 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - name: arguswatcher-net-wildcard-tls
+          - group: ""
+            kind: Secret
+            name: arguswatcher-net-wildcard-tls
       allowedRoutes:
         namespaces:
           from: All
