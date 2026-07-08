@@ -22,3 +22,13 @@ postgres:
 
 metrics:
   enabled: false
+
+tests:
+  smoke:
+    enabled: true
+  smokeExternal:
+    enabled: true
+    host: voting.arguswatcher.net
+  load:
+    enabled: false
+    targetUrl: https://voting.arguswatcher.net

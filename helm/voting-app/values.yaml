@@ -78,3 +78,15 @@ metrics:
   enabled: true
   path: /metrics
   interval: 30s
+
+tests:
+  k6:
+    image: grafana/k6:0.55.0
+  smoke:
+    enabled: false
+  smokeExternal:
+    enabled: false
+    host: voting.example.com
+  load:
+    enabled: false
+    targetUrl: ""
