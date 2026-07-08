@@ -8,7 +8,9 @@ metadata:
     app.kubernetes.io/component: api
 spec:
   parentRefs:
-    - name: {{ include "voting-app.gateway.parentRefName" . }}
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ include "voting-app.gateway.parentRefName" . }}
       {{- with .Values.gateway.parentRef.namespace }}
       namespace: {{ . }}
       {{- end }}
@@ -21,6 +23,8 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: {{ include "voting-app.api.fullname" . }}
+        - group: ""
+          kind: Service
+          name: {{ include "voting-app.api.fullname" . }}
           port: {{ .Values.service.port }}
 {{- end }}
