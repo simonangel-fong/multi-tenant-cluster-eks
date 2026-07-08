@@ -1,15 +1,12 @@
-# project-eks-argocd
+# Kubernete native platform
 
 refactor - next stage
 - istio abiemt
-  - istio
-  - eso
-  - albc
-  - karpenter
-- infra
-  - file layouts
+  - app helm
+- mtls
+- e-dns
+- cert-manager: add-on
+- certificate
 
 ---
 
-karpenter
-gateway

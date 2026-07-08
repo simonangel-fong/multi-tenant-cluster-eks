@@ -1,4 +1,6 @@
-data "aws_caller_identity" "current" {}
+# eks.tf
+
+# data "aws_caller_identity" "current" {}
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
@@ -7,9 +9,13 @@ module "eks" {
   name               = local.eks_name
   kubernetes_version = local.eks_version
 
+  # ##############################
+  # Networking
+  # ##############################
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
+  # access
   endpoint_private_access      = true
   endpoint_public_access       = true
   endpoint_public_access_cidrs = var.cluster_public_access_cidrs
@@ -17,6 +23,9 @@ module "eks" {
   authentication_mode                      = "API"
   enable_cluster_creator_admin_permissions = true
 
+  # ##############################
+  # Addon
+  # ##############################
   addons = {
     vpc-cni = {
       most_recent    = true
@@ -43,6 +52,9 @@ module "eks" {
     eks-pod-identity-agent = {}
   }
 
+  # ##############################
+  # Node group
+  # ##############################
   eks_managed_node_groups = {
     bootstrap = {
       ami_type       = "AL2023_x86_64_STANDARD"
@@ -61,6 +73,7 @@ module "eks" {
     }
   }
 
+  # karpenter
   node_security_group_tags = {
     "karpenter.sh/discovery" = local.eks_name
   }

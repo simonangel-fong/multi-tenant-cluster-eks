@@ -1,3 +1,5 @@
+# providers.tf
+
 terraform {
   required_version = ">= 1.10"
 
@@ -26,24 +28,27 @@ terraform {
   backend "s3" {}
 }
 
-provider "cloudflare" {
-  api_token = var.cloudflare_api_token
-}
-
 # aws common configuration
 provider "aws" {
-  region = var.region
+  region = local.region
 
   default_tags {
     tags = local.default_tags
   }
 }
 
-# aws identity center
-provider "aws" {
-  alias  = "identity"
-  region = "us-east-1" # Identity Center home region
-}
+
+# provider "cloudflare" {
+#   api_token = var.cloudflare_api_token
+# }
+
+
+
+# # aws identity center
+# provider "aws" {
+#   alias  = "identity"
+#   region = "us-east-1" # Identity Center home region
+# }
 
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
@@ -52,7 +57,7 @@ provider "kubernetes" {
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
-    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", var.region]
+    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", local.region]
   }
 }
 
@@ -64,7 +69,7 @@ provider "helm" {
     exec = {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
-      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", var.region]
+      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", local.region]
     }
   }
 }
