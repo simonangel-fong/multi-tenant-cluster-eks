@@ -1,3 +1,7 @@
+namespace:
+  create: false
+  labels: {}
+
 image:
   repository: simonangelfong/voting-api
   tag: latest

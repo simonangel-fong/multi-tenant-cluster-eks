@@ -1,12 +1,20 @@
+namespace:
+  create: true
+  labels:
+    istio.io/dataplane-mode: ambient
+
 image:
   pullPolicy: Always
   tag: v-metrics
 
 gateway:
-  enabled: false
-  createGateway: true
-  className: nginx
-  host: voting.local
+  enabled: true
+  createGateway: false
+  className: istio
+  host: voting.arguswatcher.net
+  parentRef:
+    name: istio-ingress
+    namespace: istio-ingress
 
 postgres:
   persistence:

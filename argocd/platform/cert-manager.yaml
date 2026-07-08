@@ -1,26 +1,29 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: voting-app
+  name: platform-cert-manager
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "-14"
   finalizers:
     - argocd.argoproj.io/resources-finalizer
 spec:
-  project: voting
+  project: platform
   source:
-    repoURL: https://github.com/simonangel-fong/project-eks-argocd
-    targetRevision: master
-    path: helm/voting-app
+    repoURL: https://charts.jetstack.io
+    chart: cert-manager
+    targetRevision: v1.20.3
     helm:
-      releaseName: voting-app
-      valueFiles:
-        - values.yaml
-        - values-dev.yaml
+      releaseName: cert-manager
+      values: |
+        crds:
+          enabled: true
+        global:
+          leaderElection:
+            namespace: cert-manager
   destination:
     server: https://kubernetes.default.svc
-    namespace: voting
+    namespace: cert-manager
   syncPolicy:
     automated:
       prune: true
