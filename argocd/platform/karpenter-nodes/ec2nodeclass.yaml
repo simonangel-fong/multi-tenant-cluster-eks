@@ -3,19 +3,19 @@ kind: EC2NodeClass
 metadata:
   name: default
 spec:
-  role: eks-platform-karpenter-node
+  role: eks-platform-dev-karpenter-node
   amiSelectorTerms:
     - alias: al2023@latest
   subnetSelectorTerms:
     - tags:
-        karpenter.sh/discovery: eks-platform
+        karpenter.sh/discovery: eks-platform-dev
   securityGroupSelectorTerms:
     - tags:
-        karpenter.sh/discovery: eks-platform
+        karpenter.sh/discovery: eks-platform-dev
   metadataOptions:
     httpEndpoint: enabled
     httpProtocolIPv6: disabled
     httpPutResponseHopLimit: 1
     httpTokens: required
   tags:
-    karpenter.sh/discovery: eks-platform
+    karpenter.sh/discovery: eks-platform-dev

@@ -8,6 +8,15 @@ output "kubeconfig_command" {
   value       = "aws eks update-kubeconfig --region ${local.region} --name ${module.eks.cluster_name}"
 }
 
+# ##############################
+# Karpenter
+# ##############################
+output "karpenter_node_iam_role_name" {
+  description = "Node IAM role name."
+  value       = module.karpenter.node_iam_role_name
+}
+
+
 # # ##############################
 # # Karpenter (7.6) — paste these into argocd/apps/karpenter.yaml values
 # # ##############################
@@ -26,10 +35,7 @@ output "kubeconfig_command" {
 #   value       = module.karpenter.queue_name
 # }
 
-# output "karpenter_node_iam_role_name" {
-#   description = "Node IAM role name — referenced by EC2NodeClass in phase 7.7."
-#   value       = module.karpenter.node_iam_role_name
-# }
+
 
 # output "private_subnet_ids" {
 #   description = "Private subnet IDs (workloads + private ALB)."
