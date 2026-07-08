@@ -16,7 +16,6 @@ spec:
     helm:
       values: |
         profile: ambient
-
   destination:
     server: https://kubernetes.default.svc
     namespace: istio-system
