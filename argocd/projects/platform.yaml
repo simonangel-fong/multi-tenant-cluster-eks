@@ -19,6 +19,7 @@ spec:
     - https://kubernetes-sigs.github.io/external-dns
     - https://kyverno.github.io/kyverno/
     - https://grafana.github.io/helm-charts
+    - https://argoproj.github.io/argo-helm
   destinations:
     - server: https://kubernetes.default.svc
       namespace: '*'
