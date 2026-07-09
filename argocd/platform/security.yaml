@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: platform-eso-resources
+  name: platform-security
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "-10"
+    argocd.argoproj.io/sync-wave: "-20"
   finalizers:
     - argocd.argoproj.io/resources-finalizer
 spec:
@@ -12,13 +12,15 @@ spec:
   source:
     repoURL: https://github.com/simonangel-fong/project-eks-argocd
     targetRevision: master
-    path: argocd/platform/eso-resources
+    path: argocd/platform-capabilities/security
+    directory:
+      recurse: false
   destination:
     server: https://kubernetes.default.svc
-    namespace: external-secrets
+    namespace: argocd
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
