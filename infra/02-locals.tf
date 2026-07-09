@@ -44,6 +44,17 @@ locals {
       service = {
         type = "ClusterIP"
       }
+      # Argo Rollouts extension — adds rollout progress panels to the
+      # ArgoCD UI so teams see canary state without a separate dashboard.
+      extensions = {
+        enabled = true
+        contents = [
+          {
+            name = "rollout-extension"
+            url  = "https://github.com/argoproj-labs/rollout-extension/releases/download/v0.3.7/extension.tar"
+          }
+        ]
+      }
     }
   })
 
