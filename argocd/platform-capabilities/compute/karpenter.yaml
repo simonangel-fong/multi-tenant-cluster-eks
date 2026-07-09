@@ -30,11 +30,11 @@ spec:
           name: karpenter
   destination:
     server: https://kubernetes.default.svc
-    namespace: karpenter
+    namespace: kube-system
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - ServerSideApply=true
-      - CreateNamespace=true
+      - CreateNamespace=false
