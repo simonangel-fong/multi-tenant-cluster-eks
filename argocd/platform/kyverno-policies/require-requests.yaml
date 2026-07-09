@@ -1,0 +1,45 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-requests
+  annotations:
+    policies.kyverno.io/title: Require resource requests
+    policies.kyverno.io/category: Scheduling
+    policies.kyverno.io/description: >-
+      Every container must declare CPU and memory requests. Prevents
+      capacity planning failure and Karpenter mis-provisioning.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-cpu-memory-requests
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kube-public
+                - kube-node-lease
+                - karpenter
+                - istio-system
+                - istio-ingress
+                - cert-manager
+                - argocd
+                - external-dns
+                - external-secrets
+                - monitoring
+                - kyverno
+      validate:
+        message: "Every container must declare `resources.requests.cpu` and `resources.requests.memory`."
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    cpu: "?*"
+                    memory: "?*"

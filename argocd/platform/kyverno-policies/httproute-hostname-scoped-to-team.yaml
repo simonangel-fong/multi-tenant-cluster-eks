@@ -1,0 +1,56 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: httproute-hostname-scoped-to-team
+  annotations:
+    policies.kyverno.io/title: HTTPRoute hostname scoped to team
+    policies.kyverno.io/category: Tenancy
+    policies.kyverno.io/description: >-
+      Teams may only claim hostnames matching their team subdomain.
+      Prevents a workload team from hijacking another team's hostname.
+      Uses the namespace's `team` label to compute the allowed pattern.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: hostname-must-match-team-subdomain
+      match:
+        any:
+          - resources:
+              kinds:
+                - HTTPRoute
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kube-public
+                - kube-node-lease
+                - karpenter
+                - istio-system
+                - istio-ingress
+                - cert-manager
+                - argocd
+                - external-dns
+                - external-secrets
+                - monitoring
+                - kyverno
+      context:
+        - name: teamLabel
+          variable:
+            jmesPath: request.namespace.metadata.labels.team || 'unknown'
+      preconditions:
+        all:
+          - key: "{{ teamLabel }}"
+            operator: NotEquals
+            value: "unknown"
+      validate:
+        message: >-
+          HTTPRoute hostnames must be under `{{ teamLabel }}.arguswatcher.net`
+          (either the exact team subdomain or a sub-subdomain of it).
+        deny:
+          conditions:
+            any:
+              - key: "{{ request.object.spec.hostnames[?!ends_with(@, '.{{ teamLabel }}.arguswatcher.net') && @ != '{{ teamLabel }}.arguswatcher.net'] | length(@) }}"
+                operator: GreaterThan
+                value: 0

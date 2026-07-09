@@ -1,0 +1,48 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-team-label
+  annotations:
+    policies.kyverno.io/title: Require team label
+    policies.kyverno.io/category: Tenancy
+    policies.kyverno.io/description: >-
+      Every workload must carry a `team` label. Drives alert routing,
+      cost allocation, and ownership. Enforced at admission on Deployments,
+      StatefulSets, DaemonSets, Jobs, CronJobs, and Rollouts.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-team-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+                - DaemonSet
+                - Job
+                - CronJob
+                - Rollout
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kube-public
+                - kube-node-lease
+                - karpenter
+                - istio-system
+                - istio-ingress
+                - cert-manager
+                - argocd
+                - external-dns
+                - external-secrets
+                - monitoring
+                - kyverno
+      validate:
+        message: "Workload must have a `team` label — drives platform routing."
+        pattern:
+          metadata:
+            labels:
+              team: "?*"

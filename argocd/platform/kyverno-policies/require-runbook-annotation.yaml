@@ -1,0 +1,45 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-runbook-annotation
+  annotations:
+    policies.kyverno.io/title: Require runbook annotation on PrometheusRule
+    policies.kyverno.io/category: Observability
+    policies.kyverno.io/description: >-
+      Every alert must carry a `runbook_url` annotation. Alerts without
+      runbooks are noise generators — on-call cannot act without documentation.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-runbook-url
+      match:
+        any:
+          - resources:
+              kinds:
+                - PrometheusRule
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kube-public
+                - kube-node-lease
+                - karpenter
+                - istio-system
+                - istio-ingress
+                - cert-manager
+                - argocd
+                - external-dns
+                - external-secrets
+                - monitoring
+                - kyverno
+      validate:
+        message: "Every alerting rule must have a `runbook_url` annotation."
+        foreach:
+          - list: "request.object.spec.groups"
+            foreach:
+              - list: "element.rules[?alert != null]"
+                pattern:
+                  annotations:
+                    runbook_url: "?*"

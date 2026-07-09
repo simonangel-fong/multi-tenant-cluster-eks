@@ -1,0 +1,50 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-probes
+  annotations:
+    policies.kyverno.io/title: Require liveness and readiness probes
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/description: >-
+      Every long-running container must declare liveness and readiness probes.
+      Enables safe rollouts (kubelet won't send traffic before ready) and
+      self-healing (unhealthy pods are restarted).
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-liveness-readiness
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kube-public
+                - kube-node-lease
+                - karpenter
+                - istio-system
+                - istio-ingress
+                - cert-manager
+                - argocd
+                - external-dns
+                - external-secrets
+                - monitoring
+                - kyverno
+          - resources:
+              kinds:
+                - Job
+                - CronJob
+      validate:
+        message: "Every container must declare `livenessProbe` and `readinessProbe`."
+        pattern:
+          spec:
+            containers:
+              - livenessProbe:
+                  "?*": "?*"
+                readinessProbe:
+                  "?*": "?*"

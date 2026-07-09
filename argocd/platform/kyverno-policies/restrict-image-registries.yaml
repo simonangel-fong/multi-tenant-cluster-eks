@@ -1,0 +1,44 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registries
+  annotations:
+    policies.kyverno.io/title: Restrict image registries
+    policies.kyverno.io/category: Supply Chain
+    policies.kyverno.io/description: >-
+      Images may only be pulled from approved registries. Reduces supply-chain
+      risk from arbitrary public images.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: allowed-registries
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kube-public
+                - kube-node-lease
+                - karpenter
+                - istio-system
+                - istio-ingress
+                - cert-manager
+                - argocd
+                - external-dns
+                - external-secrets
+                - monitoring
+                - kyverno
+      validate:
+        message: >-
+          Image registry not allowed. Approved: docker.io, quay.io, ghcr.io,
+          public.ecr.aws, registry.k8s.io, or *.dkr.ecr.*.amazonaws.com.
+        pattern:
+          spec:
+            containers:
+              - image: "docker.io/* | quay.io/* | ghcr.io/* | public.ecr.aws/* | registry.k8s.io/* | *.dkr.ecr.*.amazonaws.com/*"
