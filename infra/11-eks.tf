@@ -7,11 +7,16 @@ module "eks" {
   cluster_version = local.eks_version
   subnet_ids      = module.vpc.private_subnet_ids
 
-
-  cluster_tags = local.default_tags
   node_security_group_tags = {
     "karpenter.sh/discovery" = local.common_name
   }
+
+  node_labels = {
+    role                      = "bootstrap"
+    "karpenter.sh/controller" = "true"
+  }
+
+  cluster_tags = local.default_tags
 }
 
 
