@@ -1,6 +1,0 @@
-apiVersion: v2
-name: team-namespace
-description: Per-namespace footprint for a workload team (namespace, quota, limits, RBAC, NetworkPolicy). Instantiated per (team, environment).
-type: application
-version: 0.1.0
-appVersion: "0.1.0"

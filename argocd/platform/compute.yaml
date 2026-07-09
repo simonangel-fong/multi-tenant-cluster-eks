@@ -1,20 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: 04-tenants
+  name: platform-compute
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "-30"
+    argocd.argoproj.io/sync-wave: "-20"
   finalizers:
     - argocd.argoproj.io/resources-finalizer
 spec:
-  project: default
+  project: platform
   source:
     repoURL: https://github.com/simonangel-fong/project-eks-argocd
     targetRevision: master
-    path: argocd/tenants
+    path: argocd/platform-capabilities/compute
     directory:
-      recurse: false
+      recurse: true
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

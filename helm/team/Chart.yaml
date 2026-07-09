@@ -1,6 +1,0 @@
-apiVersion: v2
-name: team
-description: Per-team globals (AppProject, Grafana folder placeholder, Alertmanager receiver). Shipped once per team; per-namespace footprint via helm/team-namespace.
-type: application
-version: 0.1.0
-appVersion: "0.1.0"

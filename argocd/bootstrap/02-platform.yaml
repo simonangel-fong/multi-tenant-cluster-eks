@@ -12,9 +12,9 @@ spec:
   source:
     repoURL: https://github.com/simonangel-fong/project-eks-argocd
     targetRevision: master
-    path: argocd/platform
+    path: argocd/platform-capabilities/compute
     directory:
-      recurse: false
+      recurse: true
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
