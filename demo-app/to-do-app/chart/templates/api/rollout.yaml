@@ -42,6 +42,7 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.api.port }}
+              protocol: TCP
           env:
             - name: PORT
               value: {{ .Values.api.port | quote }}

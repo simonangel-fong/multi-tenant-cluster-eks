@@ -42,6 +42,7 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.web.port }}
+              protocol: TCP
           readinessProbe:
             httpGet: { path: /, port: http }
             initialDelaySeconds: 3
