@@ -14,7 +14,7 @@ db:
   password: "mypassword!098"
   storage:
     className: gp3-iops
-    size: 5Gi
+    size: 20Gi
   resources:
     requests: { cpu: 100m, memory: 256Mi }
     limits:   { cpu: 500m, memory: 512Mi }
