@@ -1,12 +1,13 @@
 global:
   host: todo.arguswatcher.net
+  team: todo
   image:
-    repository: simonangelfong/todo-app
+    repository: docker.io/simonangelfong/todo-app
 
 db:
   enabled: true
   image:
-    repository: postgres
+    repository: docker.io/library/postgres
     tag: "16-alpine"
   name: todo
   user: todo
