@@ -14,7 +14,7 @@ spec:
     targetRevision: master
     path: argocd/03-capabilities
     directory:
-      recurse: true
+      recurse: false
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
