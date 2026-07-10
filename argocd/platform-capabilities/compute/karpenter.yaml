@@ -21,6 +21,11 @@ spec:
       values: |
         nodeSelector:
           karpenter.sh/controller: "true"
+        tolerations:
+          - key: workload-class
+            operator: Equal
+            value: platform
+            effect: NoSchedule
         dnsPolicy: Default
         replicas: 1
         settings:
