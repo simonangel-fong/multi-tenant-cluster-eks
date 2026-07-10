@@ -18,4 +18,11 @@ resource "aws_eks_addon" "csi" {
     role_arn        = module.ebs_csi_pod_identity.iam_role_arn
     service_account = local.eks_csi_service_account
   }
+  configuration_values = jsonencode({
+    controller = {
+      tolerations = [
+        { key = "workload-class", operator = "Equal", value = "platform", effect = "NoSchedule" },
+      ]
+    }
+  })
 }

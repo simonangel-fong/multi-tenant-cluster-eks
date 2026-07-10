@@ -1,6 +1,4 @@
-# Kubernete native platform
-
-next stage
+# Multi-tenant Cluster
 
 
 ---
