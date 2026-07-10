@@ -117,12 +117,17 @@ argocd app get <name> --hard-refresh
 kubectl -n argocd patch app/<name> --type merge -p '{"metadata":{"finalizers":[]}}'
 kubectl -n argocd delete app <name>
 
+
 # examples from this repo
 kubectl -n argocd patch app/root            --type merge -p '{"metadata":{"finalizers":[]}}'
 kubectl -n argocd patch app/platform        --type merge -p '{"metadata":{"finalizers":[]}}'
 kubectl -n argocd patch app/eso             --type merge -p '{"metadata":{"finalizers":[]}}'
 kubectl -n argocd patch app/karpenter       --type merge -p '{"metadata":{"finalizers":[]}}'
 kubectl -n argocd patch app/istio-gateway   --type merge -p '{"metadata":{"finalizers":[]}}'
+
+# clean up
+kubectl get apps -n argocd -o name | xargs -I {} kubectl patch {} -n argocd --type=merge -p '{"metadata":{"finalizers":[]}}'
+
 
 # --- nuclear: delete without cascading to cluster resources ---
 argocd app delete <name> --cascade=false
