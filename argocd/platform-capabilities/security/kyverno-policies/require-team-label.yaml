@@ -10,7 +10,7 @@ metadata:
       cost allocation, and ownership. Enforced at admission on Deployments,
       StatefulSets, DaemonSets, Jobs, CronJobs, and Rollouts.
 spec:
-  validationFailureAction: Audit  # temp: isolating ambient/Waypoint probe issue
+  validationFailureAction: Enforce
   background: true
   rules:
     - name: require-team-label

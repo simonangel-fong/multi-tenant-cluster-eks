@@ -9,7 +9,7 @@ metadata:
       Every container must declare CPU and memory requests. Prevents
       capacity planning failure and Karpenter mis-provisioning.
 spec:
-  validationFailureAction: Audit  # temp: isolating ambient/Waypoint probe issue
+  validationFailureAction: Enforce
   background: true
   rules:
     - name: require-cpu-memory-requests

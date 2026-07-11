@@ -9,7 +9,7 @@ metadata:
       Privileged containers escape the container sandbox and can access
       host devices. Not allowed outside of platform namespaces.
 spec:
-  validationFailureAction: Audit  # temp: isolating ambient/Waypoint probe issue
+  validationFailureAction: Enforce
   background: true
   rules:
     - name: disallow-privileged

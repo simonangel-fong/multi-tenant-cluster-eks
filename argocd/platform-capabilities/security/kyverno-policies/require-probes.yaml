@@ -17,7 +17,7 @@ metadata:
     # are created by any controller.
     pod-policies.kyverno.io/autogen-controllers: none
 spec:
-  validationFailureAction: Audit  # temp: isolating ambient/Waypoint probe issue
+  validationFailureAction: Enforce
   background: true
   rules:
     - name: require-liveness-readiness

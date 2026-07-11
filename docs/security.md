@@ -71,19 +71,27 @@ Design principles:
 
 #### Ambient experiment — what we learned
 
-Both tenant namespaces were briefly labeled `istio.io/dataplane-mode=ambient` to enroll them in Istio ambient mesh. The experiment was reverted; ambient stays off until a Waypoint proxy pattern is in place.
+Two rounds of experiments on Istio 1.30.2 with EKS VPC CNI. Both reverted. Ambient stays off pending a viable probe-fix path.
 
-**Findings:**
+**Round 1 — namespace-level ambient only.**
 
-- Ambient enrollment works end-to-end. Istio CNI on the node picks up the label change, marks pods for interception, and ztunnel starts capturing their traffic.
+- Ambient enrollment works end-to-end. Istio CNI on the node picks up the `istio.io/dataplane-mode=ambient` label, marks pods for interception, and ztunnel starts capturing their traffic.
 - Pod-to-pod traffic **inside** an ambient namespace continues to work — verified by `todo-db → todo-web` on port 8080.
 - Kubelet HTTP probes against ambient-enrolled pods **fail with connection timeouts**. Probes originate from the node's host network; ztunnel intercepts them but has no matching mTLS session, so packets are dropped.
 - This is not a probe-declaration bug. Container ports are named (`http`), probes reference the name, Postgres uses exec probes. The named-port + probe-exemption path that works in Istio sidecar mode does not apply here — ambient has no per-pod proxy to do the probe rewriting.
 
+**Round 2 — namespace-level ambient + Waypoint proxy at `waypoint-for: all`.**
+
+- Waypoint materializes correctly. Kyverno needed a per-policy exclusion for workloads carrying `gateway.istio.io/managed=istio.io-mesh-controller` (Istio's Waypoint controller labels the Deployment it creates); with that in place, the Waypoint Deployment gets admitted and comes `Programmed: True`.
+- The namespace was labeled `istio.io/use-waypoint=waypoint` so all workloads route through the Waypoint. Verified the pod annotation `ambient.istio.io/redirection=enabled` and the Waypoint's address showed up on the Gateway.
+- **Probes still failed with the same timeouts.** New `web` pods went `0/1 CrashLoopBackOff` under the same failure signature as Round 1.
+- Kyverno was moved to `Audit` mode during the test to rule out admission interference. Failure persisted → Kyverno is not the cause.
+- Conclusion: `waypoint-for: all` at namespace-level does not route kubelet host-network probes through the Waypoint on Istio 1.30. The `all` semantic covers service and workload traffic *between pods*, but kubelet is outside the mesh entirely.
+
 **Why L7 identity is deferred:**
 
 1. Ambient alone is wire encryption, not access control. You still need `AuthorizationPolicy` to enforce "Team A cannot call Team B" — and today NetworkPolicy already covers that at L3.
-2. Making ambient work with kubelet probes requires deploying a **Waypoint proxy** per namespace (L7 gateway) or switching to exec-based probes. Both are non-trivial commitments.
+2. The two obvious fixes for the kubelet probe interaction were tried and neither worked at namespace level: (a) plain ambient (Round 1), (b) ambient + `waypoint-for: all` (Round 2). Remaining paths — per-pod `use-waypoint` annotation, per-pod `bypass-inbound-capture`, or exec-only probes — all require crossing into tenant-owned manifests. None are namespace-level fixes the platform can ship on its own.
 3. The concrete threat model — cross-tenant service calls that need identity-based authz — does not exist yet. Two tenants, no cross-tenant dependencies.
 
 **When to revisit:**
@@ -92,7 +100,7 @@ Both tenant namespaces were briefly labeled `istio.io/dataplane-mode=ambient` to
 - Threat model expands to include on-cluster passive attackers (requires wire encryption).
 - Compliance requirement forces mTLS between all workloads.
 
-At that point the work is: deploy Waypoint proxies, re-enable ambient enrollment at onboarding, ship `AuthorizationPolicy` as part of the onboarding contract, and remove the NetworkPolicy layer once identity-based rules replace it.
+At that point the work is: pick a viable probe path (likely a tenant-manifest change that annotates pods with `istio.io/use-waypoint` at the workload level), ship `AuthorizationPolicy` as part of the onboarding contract, and remove the NetworkPolicy layer once identity-based rules replace it.
 
 #### Admission-time contract (Kyverno)
 
