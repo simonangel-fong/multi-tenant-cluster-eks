@@ -8,11 +8,20 @@ metadata:
     app: web
 spec:
   parentRefs:
-    - name: istio-ingress
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: istio-ingress
       namespace: istio-ingress
   hostnames:
     - team-a.arguswatcher.net
   rules:
-    - backendRefs:
-        - name: web
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: web
           port: 80
+          weight: 1
