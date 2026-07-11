@@ -56,10 +56,13 @@ spec:
           configMap:
             name: todo-db-init
   volumeClaimTemplates:
-    - metadata:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
         name: data
       spec:
         accessModes: ["ReadWriteOnce"]
+        volumeMode: Filesystem
         storageClassName: {{ .Values.db.storage.className | quote }}
         resources:
           requests:
