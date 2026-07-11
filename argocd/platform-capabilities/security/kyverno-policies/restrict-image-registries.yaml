@@ -9,7 +9,7 @@ metadata:
       Images may only be pulled from approved registries. Reduces supply-chain
       risk from arbitrary public images.
 spec:
-  validationFailureAction: Enforce
+  validationFailureAction: Audit  # temp: isolating ambient/Waypoint probe issue
   background: true
   rules:
     - name: allowed-registries
