@@ -41,6 +41,13 @@ spec:
                 - monitoring
                 - kyverno
                 - argo-rollouts
+          # Istio-managed workloads (Waypoints, ingress Gateways) are
+          # materialized by Istio's controllers in tenant namespaces and
+          # carry Istio's own label scheme, not the tenant's.
+          - resources:
+              selector:
+                matchLabels:
+                  gateway.istio.io/managed: istio.io-mesh-controller
       validate:
         message: "Workload must have a `team` label — drives platform routing."
         pattern:

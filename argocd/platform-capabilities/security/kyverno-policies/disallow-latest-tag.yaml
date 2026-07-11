@@ -35,6 +35,11 @@ spec:
                 - monitoring
                 - kyverno
                 - argo-rollouts
+          # Istio-managed workloads (Waypoints, ingress Gateways).
+          - resources:
+              selector:
+                matchLabels:
+                  gateway.istio.io/managed: istio.io-mesh-controller
       validate:
         message: "Image tag is required (no `:latest`, no untagged)."
         pattern:
@@ -64,6 +69,11 @@ spec:
                 - monitoring
                 - kyverno
                 - argo-rollouts
+          # Istio-managed workloads (Waypoints, ingress Gateways).
+          - resources:
+              selector:
+                matchLabels:
+                  gateway.istio.io/managed: istio.io-mesh-controller
       validate:
         message: "Image tag `:latest` is not allowed — use an immutable tag."
         pattern:

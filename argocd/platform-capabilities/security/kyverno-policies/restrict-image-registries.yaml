@@ -35,6 +35,11 @@ spec:
                 - monitoring
                 - kyverno
                 - argo-rollouts
+          # Istio-managed workloads (Waypoints, ingress Gateways).
+          - resources:
+              selector:
+                matchLabels:
+                  gateway.istio.io/managed: istio.io-mesh-controller
       validate:
         message: >-
           Image registry not allowed. Approved: docker.io, quay.io, ghcr.io,

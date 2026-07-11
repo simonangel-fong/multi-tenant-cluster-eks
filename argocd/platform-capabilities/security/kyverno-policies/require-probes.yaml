@@ -47,6 +47,11 @@ spec:
               kinds:
                 - Job
                 - CronJob
+          # Istio-managed workloads (Waypoints, ingress Gateways).
+          - resources:
+              selector:
+                matchLabels:
+                  gateway.istio.io/managed: istio.io-mesh-controller
       validate:
         message: "Every container must declare `livenessProbe` and `readinessProbe`."
         deny:
