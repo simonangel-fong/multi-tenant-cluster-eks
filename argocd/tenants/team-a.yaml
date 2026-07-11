@@ -31,6 +31,11 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: istio-ingress
+    # Kubelet probes originate from the node's host IP, which has no
+    # namespace/pod selector. Allow the VPC CIDR so probes reach the pod.
+    - from:
+        - ipBlock:
+            cidr: 10.0.0.0/16
   egress:
     - to:
         - namespaceSelector:
