@@ -1,96 +1,96 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: platform-loki
-  namespace: argocd
-  labels:
-    scope: platform
-    capability: observability
-  annotations:
-    argocd.argoproj.io/sync-wave: "-11"
-  finalizers:
-    - argocd.argoproj.io/resources-finalizer
-spec:
-  project: platform
-  source:
-    repoURL: https://grafana.github.io/helm-charts
-    chart: loki
-    targetRevision: 7.0.0    
-    helm:
-      releaseName: loki
-      values: |
-        deploymentMode: SingleBinary
-        loki:
-          auth_enabled: false
-          commonConfig:
-            replication_factor: 1
-          storage:
-            type: s3
-            bucketNames:
-              chunks: multi-tenant-eks-dev-loki
-              ruler: multi-tenant-eks-dev-loki
-              admin: multi-tenant-eks-dev-loki
-            s3:
-              region: ca-central-1
-              s3ForcePathStyle: false
-              insecure: false
-          schemaConfig:
-            configs:
-              - from: 2024-04-01
-                store: tsdb
-                object_store: s3
-                schema: v13
-                index:
-                  prefix: index_
-                  period: 24h
-          limits_config:
-            retention_period: 720h
-            max_query_series: 5000
-            reject_old_samples: true
-            reject_old_samples_max_age: 168h
-          compactor:
-            retention_enabled: true
-            delete_request_store: s3
-        singleBinary:
-          replicas: 1
-          persistence:
-            enabled: true
-            size: 10Gi
-            storageClass: gp3
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              memory: 512Mi
-        # SingleBinary mode requires the scalable components to be zeroed.
-        # Chart 7.x defaults them to non-zero — must override explicitly.
-        read:
-          replicas: 0
-        write:
-          replicas: 0
-        backend:
-          replicas: 0
-        serviceAccount:
-          create: true
-          name: loki
-        gateway:
-          enabled: false
-        chunksCache:
-          enabled: false
-        resultsCache:
-          enabled: false
-        test:
-          enabled: false
-        lokiCanary:
-          enabled: false
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: monitoring
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: platform-loki
+#   namespace: argocd
+#   labels:
+#     scope: platform
+#     capability: observability
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "-11"
+#   finalizers:
+#     - argocd.argoproj.io/resources-finalizer
+# spec:
+#   project: platform
+#   source:
+#     repoURL: https://grafana.github.io/helm-charts
+#     chart: loki
+#     targetRevision: 7.0.0    
+#     helm:
+#       releaseName: loki
+#       values: |
+#         deploymentMode: SingleBinary
+#         loki:
+#           auth_enabled: false
+#           commonConfig:
+#             replication_factor: 1
+#           storage:
+#             type: s3
+#             bucketNames:
+#               chunks: multi-tenant-eks-dev-loki
+#               ruler: multi-tenant-eks-dev-loki
+#               admin: multi-tenant-eks-dev-loki
+#             s3:
+#               region: ca-central-1
+#               s3ForcePathStyle: false
+#               insecure: false
+#           schemaConfig:
+#             configs:
+#               - from: 2024-04-01
+#                 store: tsdb
+#                 object_store: s3
+#                 schema: v13
+#                 index:
+#                   prefix: index_
+#                   period: 24h
+#           limits_config:
+#             retention_period: 720h
+#             max_query_series: 5000
+#             reject_old_samples: true
+#             reject_old_samples_max_age: 168h
+#           compactor:
+#             retention_enabled: true
+#             delete_request_store: s3
+#         singleBinary:
+#           replicas: 1
+#           persistence:
+#             enabled: true
+#             size: 10Gi
+#             storageClass: gp3
+#           resources:
+#             requests:
+#               cpu: 100m
+#               memory: 256Mi
+#             limits:
+#               memory: 512Mi
+#         # SingleBinary mode requires the scalable components to be zeroed.
+#         # Chart 7.x defaults them to non-zero — must override explicitly.
+#         read:
+#           replicas: 0
+#         write:
+#           replicas: 0
+#         backend:
+#           replicas: 0
+#         serviceAccount:
+#           create: true
+#           name: loki
+#         gateway:
+#           enabled: false
+#         chunksCache:
+#           enabled: false
+#         resultsCache:
+#           enabled: false
+#         test:
+#           enabled: false
+#         lokiCanary:
+#           enabled: false
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: monitoring
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
+#       - ServerSideApply=true

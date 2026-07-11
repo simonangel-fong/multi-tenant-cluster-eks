@@ -1,149 +1,149 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: platform-prometheus-grafana
-  namespace: argocd
-  labels:
-    scope: platform
-    capability: observability
-  annotations:
-    argocd.argoproj.io/sync-wave: "-11"
-  finalizers:
-    - argocd.argoproj.io/resources-finalizer
-spec:
-  project: platform
-  source:
-    repoURL: https://prometheus-community.github.io/helm-charts
-    chart: kube-prometheus-stack
-    targetRevision: 87.12.0
-    helm:
-      releaseName: prometheus
-      values: |
-        crds:
-          enabled: true
-        prometheus:
-          prometheusSpec:
-            retention: 7d
-            retentionSize: "15GB"
-            serviceMonitorSelectorNilUsesHelmValues: false
-            podMonitorSelectorNilUsesHelmValues: false
-            probeSelectorNilUsesHelmValues: false
-            ruleSelectorNilUsesHelmValues: false
-            scrapeConfigSelectorNilUsesHelmValues: false
-            resources:
-              requests:
-                cpu: 250m
-                memory: 1Gi
-              limits:
-                memory: 2Gi
-            storageSpec:
-              volumeClaimTemplate:
-                spec:
-                  storageClassName: gp3
-                  accessModes: ["ReadWriteOnce"]
-                  resources:
-                    requests:
-                      storage: 20Gi
-        grafana:
-          persistence:
-            enabled: true
-            storageClassName: gp3
-            size: 5Gi
-          defaultDashboardsEnabled: true
-          sidecar:
-            dashboards:
-              enabled: true
-              label: grafana_dashboard
-              labelValue: "1"
-              folderAnnotation: grafana_folder
-              provider:
-                foldersFromFilesStructure: true
-              searchNamespace: ALL
-            datasources:
-              enabled: true
-              label: grafana_datasource
-              labelValue: "1"
-              searchNamespace: ALL
-          additionalDataSources:
-            - name: Loki
-              type: loki
-              access: proxy
-              url: http://loki.monitoring.svc.cluster.local:3100
-              isDefault: false
-              editable: false
-              jsonData:
-                maxLines: 1000
-        alertmanager:
-          enabled: true
-          alertmanagerSpec:
-            resources:
-              requests:
-                cpu: 20m
-                memory: 64Mi
-              limits:
-                memory: 128Mi
-            storage:
-              volumeClaimTemplate:
-                spec:
-                  storageClassName: gp3
-                  accessModes: ["ReadWriteOnce"]
-                  resources:
-                    requests:
-                      storage: 2Gi
-            secrets:
-              - slack-webhook
-            # Discover per-team AlertmanagerConfig CRs by label so
-            # teams onboard without central-config edits.
-            alertmanagerConfigSelector:
-              matchLabels:
-                alertmanagerConfig: platform
-            alertmanagerConfigNamespaceSelector: {}
-          config:
-            global:
-              resolve_timeout: 5m
-              slack_api_url_file: /etc/alertmanager/secrets/slack-webhook/url
-            route:
-              group_by: ["alertname", "team", "severity"]
-              group_wait: 30s
-              group_interval: 5m
-              repeat_interval: 4h
-              receiver: platform-events
-              routes:
-                - matchers: [severity="critical"]
-                  receiver: platform-oncall
-                  continue: true
-                # Team-specific routes are added by the TeamNamespace primitive.
-                # Pattern: matcher on team=X labels, route to #<team>-alerts / #<team>-oncall.
-            receivers:
-              - name: platform-events
-                slack_configs:
-                  - channel: "#platform-events"
-                    send_resolved: true
-                    title: '{{ template "slack.default.title" . }}'
-                    text: '{{ template "slack.default.text" . }}'
-              - name: platform-oncall
-                slack_configs:
-                  - channel: "#platform-oncall"
-                    send_resolved: true
-                    title: '{{ template "slack.default.title" . }}'
-                    text: '{{ template "slack.default.text" . }}'
-        defaultRules:
-          create: false
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: monitoring
-  ignoreDifferences:
-    - group: apiextensions.k8s.io
-      kind: CustomResourceDefinition
-      jqPathExpressions:
-        - .metadata.annotations
-        - .metadata.labels
-        - .spec.conversion
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
-      - RespectIgnoreDifferences=true
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: platform-prometheus-grafana
+#   namespace: argocd
+#   labels:
+#     scope: platform
+#     capability: observability
+#   annotations:
+#     argocd.argoproj.io/sync-wave: "-11"
+#   finalizers:
+#     - argocd.argoproj.io/resources-finalizer
+# spec:
+#   project: platform
+#   source:
+#     repoURL: https://prometheus-community.github.io/helm-charts
+#     chart: kube-prometheus-stack
+#     targetRevision: 87.12.0
+#     helm:
+#       releaseName: prometheus
+#       values: |
+#         crds:
+#           enabled: true
+#         prometheus:
+#           prometheusSpec:
+#             retention: 7d
+#             retentionSize: "15GB"
+#             serviceMonitorSelectorNilUsesHelmValues: false
+#             podMonitorSelectorNilUsesHelmValues: false
+#             probeSelectorNilUsesHelmValues: false
+#             ruleSelectorNilUsesHelmValues: false
+#             scrapeConfigSelectorNilUsesHelmValues: false
+#             resources:
+#               requests:
+#                 cpu: 250m
+#                 memory: 1Gi
+#               limits:
+#                 memory: 2Gi
+#             storageSpec:
+#               volumeClaimTemplate:
+#                 spec:
+#                   storageClassName: gp3
+#                   accessModes: ["ReadWriteOnce"]
+#                   resources:
+#                     requests:
+#                       storage: 20Gi
+#         grafana:
+#           persistence:
+#             enabled: true
+#             storageClassName: gp3
+#             size: 5Gi
+#           defaultDashboardsEnabled: true
+#           sidecar:
+#             dashboards:
+#               enabled: true
+#               label: grafana_dashboard
+#               labelValue: "1"
+#               folderAnnotation: grafana_folder
+#               provider:
+#                 foldersFromFilesStructure: true
+#               searchNamespace: ALL
+#             datasources:
+#               enabled: true
+#               label: grafana_datasource
+#               labelValue: "1"
+#               searchNamespace: ALL
+#           additionalDataSources:
+#             - name: Loki
+#               type: loki
+#               access: proxy
+#               url: http://loki.monitoring.svc.cluster.local:3100
+#               isDefault: false
+#               editable: false
+#               jsonData:
+#                 maxLines: 1000
+#         alertmanager:
+#           enabled: true
+#           alertmanagerSpec:
+#             resources:
+#               requests:
+#                 cpu: 20m
+#                 memory: 64Mi
+#               limits:
+#                 memory: 128Mi
+#             storage:
+#               volumeClaimTemplate:
+#                 spec:
+#                   storageClassName: gp3
+#                   accessModes: ["ReadWriteOnce"]
+#                   resources:
+#                     requests:
+#                       storage: 2Gi
+#             secrets:
+#               - slack-webhook
+#             # Discover per-team AlertmanagerConfig CRs by label so
+#             # teams onboard without central-config edits.
+#             alertmanagerConfigSelector:
+#               matchLabels:
+#                 alertmanagerConfig: platform
+#             alertmanagerConfigNamespaceSelector: {}
+#           config:
+#             global:
+#               resolve_timeout: 5m
+#               slack_api_url_file: /etc/alertmanager/secrets/slack-webhook/url
+#             route:
+#               group_by: ["alertname", "team", "severity"]
+#               group_wait: 30s
+#               group_interval: 5m
+#               repeat_interval: 4h
+#               receiver: platform-events
+#               routes:
+#                 - matchers: [severity="critical"]
+#                   receiver: platform-oncall
+#                   continue: true
+#                 # Team-specific routes are added by the TeamNamespace primitive.
+#                 # Pattern: matcher on team=X labels, route to #<team>-alerts / #<team>-oncall.
+#             receivers:
+#               - name: platform-events
+#                 slack_configs:
+#                   - channel: "#platform-events"
+#                     send_resolved: true
+#                     title: '{{ template "slack.default.title" . }}'
+#                     text: '{{ template "slack.default.text" . }}'
+#               - name: platform-oncall
+#                 slack_configs:
+#                   - channel: "#platform-oncall"
+#                     send_resolved: true
+#                     title: '{{ template "slack.default.title" . }}'
+#                     text: '{{ template "slack.default.text" . }}'
+#         defaultRules:
+#           create: false
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: monitoring
+#   ignoreDifferences:
+#     - group: apiextensions.k8s.io
+#       kind: CustomResourceDefinition
+#       jqPathExpressions:
+#         - .metadata.annotations
+#         - .metadata.labels
+#         - .spec.conversion
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
+#       - ServerSideApply=true
+#       - RespectIgnoreDifferences=true

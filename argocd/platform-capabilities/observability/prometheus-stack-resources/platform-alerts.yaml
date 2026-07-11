@@ -1,46 +1,46 @@
-# Reference PrometheusRule for the platform team. Establishes the alert
-# labeling convention (team, severity) and required annotations (summary,
-# description, runbook_url) that Kyverno enforces.
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  name: platform-alerts
-  namespace: monitoring
-  labels:
-    team: platform
-    prometheus: prometheus
-    role: alert-rules
-spec:
-  groups:
-    - name: platform.rules
-      interval: 30s
-      rules:
-        - alert: KyvernoAdmissionControllerDown
-          expr: |
-            absent(up{job="kyverno-svc",container="kyverno"}) == 1
-            or
-            up{job="kyverno-svc",container="kyverno"} == 0
-          for: 5m
-          labels:
-            team: platform
-            severity: critical
-          annotations:
-            summary: "Kyverno admission controller is down"
-            description: >-
-              The Kyverno admission webhook is unavailable. New workloads may
-              be created without policy enforcement, or all admissions may be
-              blocked depending on webhook failurePolicy.
-            runbook_url: "https://github.com/simonangel-fong/project-eks-argocd/blob/master/docs/runbooks/kyverno-down.md"
-        - alert: ArgoCDAppUnhealthy
-          expr: |
-            argocd_app_info{health_status!="Healthy"} == 1
-          for: 15m
-          labels:
-            team: platform
-            severity: warning
-          annotations:
-            summary: "ArgoCD Application unhealthy: {{ $labels.name }}"
-            description: >-
-              Application {{ $labels.name }} in project {{ $labels.project }}
-              has been unhealthy for 15 minutes. Sync status: {{ $labels.sync_status }}.
-            runbook_url: "https://github.com/simonangel-fong/project-eks-argocd/blob/master/docs/runbooks/argocd-degraded.md"
+# # Reference PrometheusRule for the platform team. Establishes the alert
+# # labeling convention (team, severity) and required annotations (summary,
+# # description, runbook_url) that Kyverno enforces.
+# apiVersion: monitoring.coreos.com/v1
+# kind: PrometheusRule
+# metadata:
+#   name: platform-alerts
+#   namespace: monitoring
+#   labels:
+#     team: platform
+#     prometheus: prometheus
+#     role: alert-rules
+# spec:
+#   groups:
+#     - name: platform.rules
+#       interval: 30s
+#       rules:
+#         - alert: KyvernoAdmissionControllerDown
+#           expr: |
+#             absent(up{job="kyverno-svc",container="kyverno"}) == 1
+#             or
+#             up{job="kyverno-svc",container="kyverno"} == 0
+#           for: 5m
+#           labels:
+#             team: platform
+#             severity: critical
+#           annotations:
+#             summary: "Kyverno admission controller is down"
+#             description: >-
+#               The Kyverno admission webhook is unavailable. New workloads may
+#               be created without policy enforcement, or all admissions may be
+#               blocked depending on webhook failurePolicy.
+#             runbook_url: "https://github.com/simonangel-fong/project-eks-argocd/blob/master/docs/runbooks/kyverno-down.md"
+#         - alert: ArgoCDAppUnhealthy
+#           expr: |
+#             argocd_app_info{health_status!="Healthy"} == 1
+#           for: 15m
+#           labels:
+#             team: platform
+#             severity: warning
+#           annotations:
+#             summary: "ArgoCD Application unhealthy: {{ $labels.name }}"
+#             description: >-
+#               Application {{ $labels.name }} in project {{ $labels.project }}
+#               has been unhealthy for 15 minutes. Sync status: {{ $labels.sync_status }}.
+#             runbook_url: "https://github.com/simonangel-fong/project-eks-argocd/blob/master/docs/runbooks/argocd-degraded.md"

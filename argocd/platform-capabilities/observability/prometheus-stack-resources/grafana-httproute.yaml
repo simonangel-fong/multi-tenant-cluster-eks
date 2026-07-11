@@ -1,25 +1,25 @@
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: grafana
-  namespace: monitoring
-spec:
-  parentRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: istio-ingress
-      namespace: istio-ingress
-      sectionName: https
-  hostnames:
-    - grafana.arguswatcher.net
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - group: ""
-          kind: Service
-          name: prometheus-grafana
-          port: 80
-          weight: 1
+# apiVersion: gateway.networking.k8s.io/v1
+# kind: HTTPRoute
+# metadata:
+#   name: grafana
+#   namespace: monitoring
+# spec:
+#   parentRefs:
+#     - group: gateway.networking.k8s.io
+#       kind: Gateway
+#       name: istio-ingress
+#       namespace: istio-ingress
+#       sectionName: https
+#   hostnames:
+#     - grafana.arguswatcher.net
+#   rules:
+#     - matches:
+#         - path:
+#             type: PathPrefix
+#             value: /
+#       backendRefs:
+#         - group: ""
+#           kind: Service
+#           name: prometheus-grafana
+#           port: 80
+#           weight: 1
