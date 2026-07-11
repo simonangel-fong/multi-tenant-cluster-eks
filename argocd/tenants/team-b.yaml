@@ -4,7 +4,10 @@ metadata:
   name: team-b
   labels:
     team: team-b
-    istio.io/dataplane-mode: ambient
+    # Ambient mTLS disabled — kubelet probes fail against enrolled pods because
+    # ztunnel expects mTLS. Re-enable with a Waypoint proxy or port-level
+    # exclusion once AuthorizationPolicy is in scope.
+    # istio.io/dataplane-mode: ambient
 ---
 # Default-deny — every pod-to-pod path is blocked until an allow rule opens it.
 apiVersion: networking.k8s.io/v1
