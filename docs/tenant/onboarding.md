@@ -29,7 +29,10 @@
 
 **Profile.** Simple stateless web app. Default path only — no PVC, no toleration, one hostname.
 
-**Capabilities exercised:** compute (`general`), ingress + TLS + DNS.
+**Capabilities exercised:**
+
+- compute (`general`),
+- ingress + TLS + DNS.
 
 - Application
   - simple nginx web app
@@ -38,46 +41,7 @@
   - file: `demo-app/team-a`
   - host: `team-a.arguswatcher.net`
 
-**Tenant manifests**
-
-```yaml
-# demo-app/team-a/deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: web
-  namespace: team-a
-  labels: { team: team-a, app: web }
-spec:
-  replicas: 2
-  selector: { matchLabels: { app: web } }
-  template:
-    metadata: { labels: { team: team-a, app: web } }
-    spec:
-      containers:
-        - name: nginx
-          image: nginx:1.27
-          ports: [{ containerPort: 80, name: http }]
-          resources: { requests: { cpu: 50m, memory: 64Mi } }
-          readinessProbe: { httpGet: { path: /, port: http } }
-          livenessProbe: { httpGet: { path: /, port: http } }
----
-apiVersion: v1
-kind: Service
-metadata: { name: web, namespace: team-a }
-spec:
-  selector: { app: web }
-  ports: [{ port: 80, targetPort: http, name: http }]
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata: { name: web, namespace: team-a }
-spec:
-  parentRefs: [{ name: istio-ingress, namespace: istio-ingress }]
-  hostnames: [team-a.arguswatcher.net]
-  rules:
-    - backendRefs: [{ name: web, port: 80 }]
-```
+- Tenant manifests: demo-app/team-a
 
 ---
 

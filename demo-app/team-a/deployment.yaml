@@ -38,3 +38,11 @@ spec:
             httpGet:
               path: /
               port: http
+          volumeMounts:
+            - name: web-content
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+      volumes:
+        - name: web-content
+          configMap:
+            name: web-content
