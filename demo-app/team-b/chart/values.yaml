@@ -40,16 +40,6 @@ api:
   pdb:
     enabled: true
     minAvailable: 1
-  canary:
-    steps:
-      - setWeight: 20
-      - pause: { duration: 60s }
-      - analysis:
-          templates:
-            - templateName: todo-api-success-rate
-      - setWeight: 50
-      - pause: { duration: 60s }
-      - setWeight: 100
 
 web:
   enabled: true
@@ -65,13 +55,6 @@ web:
   pdb:
     enabled: true
     minAvailable: 1
-  canary:
-    steps:
-      - setWeight: 20
-      - pause: { duration: 60s }
-      - setWeight: 50
-      - pause: { duration: 60s }
-      - setWeight: 100
 
 gatewayApi:
   enabled: true
@@ -79,8 +62,3 @@ gatewayApi:
     name: istio-ingress
     namespace: istio-ingress
     sectionName: https
-
-analysis:
-  prometheus:
-    address: http://prometheus.monitoring:9090
-    successRateThreshold: "0.95"

@@ -1,6 +1,6 @@
 {{- if .Values.web.enabled }}
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: todo-web
   labels:
@@ -8,18 +8,6 @@ metadata:
     app.kubernetes.io/component: web
 spec:
   replicas: {{ .Values.web.replicas }}
-  strategy:
-    canary:
-      canaryService: todo-web-canary
-      stableService: todo-web
-      trafficRouting:
-        plugins:
-          argoproj-labs/gatewayAPI:
-            httpRoute:
-              name: todo-web
-              namespace: {{ .Release.Namespace }}
-      steps:
-        {{- toYaml .Values.web.canary.steps | nindent 8 }}
   selector:
     matchLabels:
       app.kubernetes.io/component: web
