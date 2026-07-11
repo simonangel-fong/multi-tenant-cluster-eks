@@ -6,13 +6,15 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  description: To-do demo app
+  description: team-a workload
   sourceRepos:
     - https://github.com/simonangel-fong/project-eks-argocd
   destinations:
     - server: https://kubernetes.default.svc
       namespace: team-a
   clusterResourceWhitelist:
+    - group: gateway.networking.k8s.io
+      kind: '*'
     - group: ''
       kind: Namespace
   namespaceResourceWhitelist:
