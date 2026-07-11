@@ -21,6 +21,14 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: team-a
+  ignoreDifferences:
+    # HTTPRoute defaults filled in by the Gateway API controller.
+    # Lets tenants ship minimal HTTPRoute manifests without permanent drift.
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jsonPointers:
+        - /spec/parentRefs
+        - /spec/rules
   syncPolicy:
     automated:
       prune: true
