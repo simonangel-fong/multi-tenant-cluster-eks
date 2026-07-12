@@ -22,8 +22,6 @@ spec:
       labels:
         scope: tenant
         team: "{{ .name }}"
-      finalizers:
-        - resources-finalizer.argocd.argoproj.io
     spec:
       project: default
       source:

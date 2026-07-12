@@ -6,8 +6,6 @@ metadata:
   labels:
     scope: tenant
     team: {{ .Values.name }}
-  finalizers:
-    - argocd.argoproj.io/resources-finalizer
 spec:
   project: {{ .Values.name }}
   source:
