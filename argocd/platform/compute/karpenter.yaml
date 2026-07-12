@@ -1,3 +1,4 @@
+# karpenter installation
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -15,7 +16,7 @@ spec:
   source:
     repoURL: public.ecr.aws/karpenter
     chart: karpenter
-    targetRevision: 1.6.0
+    targetRevision: 1.13.0
     helm:
       releaseName: karpenter
       values: |

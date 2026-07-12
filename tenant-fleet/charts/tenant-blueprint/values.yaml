@@ -1,0 +1,5 @@
+tenantName: "default-tenant"
+tier: "small"
+resources:
+  cpu: "1"
+  memory: "2Gi"

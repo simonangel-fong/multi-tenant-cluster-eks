@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tenant-quota
+  namespace: { { .Values.tenantName } }
+spec:
+  hard:
+    requests.cpu: { { .Values.resources.cpu | quote } }
+    requests.memory: { { .Values.resources.memory | quote } }
+    limits.cpu: { { .Values.resources.cpu | quote } }
+    limits.memory: { { .Values.resources.memory | quote } }

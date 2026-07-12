@@ -12,7 +12,6 @@ module "eks" {
     "karpenter.sh/discovery" = local.common_name
   }
 
-
   # ####################
   # node group
   # ####################

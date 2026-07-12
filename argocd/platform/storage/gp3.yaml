@@ -10,3 +10,10 @@ volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
 parameters:
   type: gp3
+  tagSpecification_1: "Name={{ .PVCNamespace }}-{{ .PVCName }}"
+  tagSpecification_2: "Namespace={{ .PVCNamespace }}"
+  tagSpecification_3: "PVCName={{ .PVCName }}"
+  tagSpecification_4: "PVName={{ .PVName }}"
+  tagSpecification_5: "StorageClass=gp3"
+  tagSpecification_6: "Cluster=multi-tenant-eks-dev"
+  tagSpecification_7: "ManagedBy=ebs-csi-driver"

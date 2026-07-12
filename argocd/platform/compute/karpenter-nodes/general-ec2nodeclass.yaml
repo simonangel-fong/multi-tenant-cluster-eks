@@ -19,6 +19,7 @@ spec:
     httpPutResponseHopLimit: 1
     httpTokens: required
   tags:
-    karpenter.sh/discovery: multi-tenant-eks-dev
-    workload-class: general
     Name: multi-tenant-eks-dev-general
+    workload-class: general
+    Cluster: multi-tenant-eks-dev
+    ManagedBy: karpenter

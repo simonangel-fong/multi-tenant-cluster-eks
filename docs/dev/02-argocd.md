@@ -81,7 +81,7 @@ Then apply:
 
 ```sh
 aws eks update-kubeconfig --region ca-central-1 --name multi-tenant-eks-dev
-kubectl apply -f argocd/root.yaml
+kubectl apply -f app-of-apps.yaml
 ```
 
 Verify:
