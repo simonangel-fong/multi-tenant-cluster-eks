@@ -18,9 +18,9 @@ App-of-apps hierarchy: `root.yaml` → `bootstrap/` → `projects/` + `platform/
 argocd/
 ├── root.yaml                # entry point; points at bootstrap/
 ├── bootstrap/               # first-level app-of-apps
-│   ├── 01-projects.yaml     # syncs projects/
-│   ├── 02-platform.yaml     # syncs platform/
-│   └── 03-tenants.yaml      # syncs tenants/
+│   ├── projects.yaml        # syncs projects/
+│   ├── platform.yaml        # syncs platform/
+│   └── tenants.yaml         # syncs tenants/
 ├── projects/                # AppProject guardrails (RBAC, allowed repos/destinations)
 │   ├── platform.yaml
 │   ├── team-a.yaml

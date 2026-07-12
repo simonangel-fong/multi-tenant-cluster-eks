@@ -1,4 +1,4 @@
-# Multi-tenant EKS Cluster
+# Multi-tenant Cluster with EKS
 
 > A production-shape EKS cluster that hosts multiple teams on shared infrastructure. Terraform provisions AWS; ArgoCD runs everything above the API server via GitOps.
 
@@ -12,18 +12,21 @@ In a small to mid-size enterprise, giving every product team its own cluster dri
 
 > How to serve many teams from one cluster while keeping each team's workloads isolated, safe, and easy to operate?
 
-This project creates a multi-tenant cluster on EKS: one namespace, one subdomain, and one deploy path per team, on top of shared compute, storage, ingress, TLS, DNS, and mTLS.
+This project creates a multi-tenant cluster(`Soft Multi-Tenancy`) on EKS: one namespace, one subdomain, and one deploy path per team, on top of shared compute, storage, ingress, TLS, DNS, and mTLS.
 
 ---
 
 ## Multi-tenant Cluster
 
-A **multi-tenant cluster** is one Kubernetes cluster that hosts workloads from multiple teams, each isolated by namespace, network policy, and access controls.
+- `multi-tenant cluster`
+  - a single Kubernetes cluster that is shared by multiple independent users, teams, or organizations (tenants).
 
 Benefits:
 
-- **Lower cost** — pooled capacity replaces per-team over-provisioning.
-- **One platform to run** — one control plane, one upgrade path, one security baseline.
+- **Lower cost**:
+  - pooled capacity replaces per-team over-provisioning.
+- **One platform to run**
+  - one control plane, one upgrade path, one security baseline.
 - **Consistent governance** — the same guardrails apply to every tenant.
 - **Fast onboarding** — a new team goes live with one platform PR and one tenant PR.
 

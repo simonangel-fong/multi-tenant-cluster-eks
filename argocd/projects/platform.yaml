@@ -8,7 +8,7 @@ metadata:
 spec:
   description: Cluster add-ons (ESO, ALBC, Karpenter)
   sourceRepos:
-    - https://github.com/simonangel-fong/project-eks-argocd
+    - https://github.com/simonangel-fong/eks-multi-tenant-cluster
     - https://aws.github.io/eks-charts
     - public.ecr.aws/karpenter
     - https://charts.external-secrets.io

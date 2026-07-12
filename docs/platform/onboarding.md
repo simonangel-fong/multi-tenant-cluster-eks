@@ -31,7 +31,7 @@ Collect from the tenant before opening the PR:
 | Field                | Example                                                 | Used for                              |
 | -------------------- | ------------------------------------------------------- | ------------------------------------- |
 | Team name (`<team>`) | `team-a`                                                | namespace, subdomain, `team` label    |
-| Source repo          | `https://github.com/simonangel-fong/project-eks-argocd` | `AppProject.sourceRepos`              |
+| Source repo          | `https://github.com/simonangel-fong/eks-multi-tenant-cluster` | `AppProject.sourceRepos`              |
 | Manifests path       | `demo-app/team-a`                                       | `Application.spec.source.path`        |
 | Cluster-scoped needs | e.g. `HTTPRoute` (Gateway API)                          | `AppProject.clusterResourceWhitelist` |
 | Quota tier           | baseline / custom                                       | `ResourceQuota` values                |

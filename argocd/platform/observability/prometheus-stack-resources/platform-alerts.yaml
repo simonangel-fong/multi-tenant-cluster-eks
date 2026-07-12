@@ -30,7 +30,7 @@
 #               The Kyverno admission webhook is unavailable. New workloads may
 #               be created without policy enforcement, or all admissions may be
 #               blocked depending on webhook failurePolicy.
-#             runbook_url: "https://github.com/simonangel-fong/project-eks-argocd/blob/master/docs/runbooks/kyverno-down.md"
+#             runbook_url: "https://github.com/simonangel-fong/eks-multi-tenant-cluster/blob/master/docs/runbooks/kyverno-down.md"
 #         - alert: ArgoCDAppUnhealthy
 #           expr: |
 #             argocd_app_info{health_status!="Healthy"} == 1
@@ -43,4 +43,4 @@
 #             description: >-
 #               Application {{ $labels.name }} in project {{ $labels.project }}
 #               has been unhealthy for 15 minutes. Sync status: {{ $labels.sync_status }}.
-#             runbook_url: "https://github.com/simonangel-fong/project-eks-argocd/blob/master/docs/runbooks/argocd-degraded.md"
+#             runbook_url: "https://github.com/simonangel-fong/eks-multi-tenant-cluster/blob/master/docs/runbooks/argocd-degraded.md"

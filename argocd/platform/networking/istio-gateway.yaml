@@ -13,7 +13,7 @@ metadata:
 spec:
   project: platform
   source:
-    repoURL: https://github.com/simonangel-fong/project-eks-argocd
+    repoURL: https://github.com/simonangel-fong/eks-multi-tenant-cluster
     targetRevision: master
     path: argocd/platform-capabilities/networking/istio-gateway
   destination:

@@ -1,23 +1,24 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: 03-tenants
+  name: 02-platform
   namespace: argocd
   labels:
     scope: platform
     capability: bootstrap
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "-50"
   finalizers:
     - argocd.argoproj.io/resources-finalizer
 spec:
   project: default
   source:
-    repoURL: https://github.com/simonangel-fong/project-eks-argocd
+    repoURL: https://github.com/simonangel-fong/eks-multi-tenant-cluster
     targetRevision: master
-    path: argocd/tenants
-    # directory:
-    #   recurse: false
+    path: argocd/platform
+    directory:
+      recurse: true
+      exclude: '*/*/*.yaml'
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

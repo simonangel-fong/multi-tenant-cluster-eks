@@ -8,7 +8,7 @@ metadata:
 spec:
   description: team-b workload
   sourceRepos:
-    - https://github.com/simonangel-fong/project-eks-argocd
+    - https://github.com/simonangel-fong/eks-multi-tenant-cluster
   destinations:
     - server: https://kubernetes.default.svc
       namespace: team-b

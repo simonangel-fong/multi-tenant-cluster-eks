@@ -11,7 +11,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/simonangel-fong/project-eks-argocd
+    repoURL: https://github.com/simonangel-fong/eks-multi-tenant-cluster
     targetRevision: master
     path: argocd/bootstrap
   destination:

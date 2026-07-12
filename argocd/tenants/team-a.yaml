@@ -129,7 +129,7 @@ metadata:
 spec:
   project: team-a
   source:
-    repoURL: https://github.com/simonangel-fong/project-eks-argocd
+    repoURL: https://github.com/simonangel-fong/eks-multi-tenant-cluster
     targetRevision: master
     path: demo-app/team-a
   destination:
