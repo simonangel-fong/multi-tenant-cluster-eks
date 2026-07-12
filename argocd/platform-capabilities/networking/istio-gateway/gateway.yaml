@@ -10,7 +10,7 @@ spec:
   gatewayClassName: istio
   infrastructure:
     annotations:
-      service.beta.kubernetes.io/aws-load-balancer-name: multi-tenant-eks-dev-istio-ingress
+      service.beta.kubernetes.io/aws-load-balancer-name: multi-tenant-eks-dev
       service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: Cluster=multi-tenant-eks-dev,Environment=dev,Project=multi-tenant-eks,ManagedBy=aws-load-balancer-controller
       service.beta.kubernetes.io/aws-load-balancer-type: external
       service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
