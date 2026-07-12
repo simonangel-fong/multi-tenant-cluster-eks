@@ -6,6 +6,7 @@ metadata:
 spec:
   description: Tenant AppProject for {{ .Values.name }}
   sourceRepos:
+    - https://github.com/simonangel-fong/eks-multi-tenant-cluster
     - {{ .Values.sourceRepo | quote }}
   destinations:
     - server: https://kubernetes.default.svc

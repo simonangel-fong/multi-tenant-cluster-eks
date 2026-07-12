@@ -15,7 +15,7 @@ spec:
           - path: tenants/*.json
   template:
     metadata:
-      name: "tenant-{{ .name }}-init"
+      name: "tenant-{{ .name }}"
       namespace: argocd
       annotations:
         argocd.argoproj.io/sync-wave: "100"
@@ -24,19 +24,21 @@ spec:
         team: "{{ .name }}"
     spec:
       project: default
-      source:
-        repoURL: https://github.com/simonangel-fong/eks-multi-tenant-cluster
-        targetRevision: master
-        path: tenant-chart
-        helm:
-          releaseName: "tenant-{{ .name }}-init"
-          valuesObject:
-            name: "{{ .name }}"
-            sourceRepo: "{{ .sourceRepo }}"
-            manifestPath: "{{ .manifestPath }}"
+      sources:
+        - repoURL: https://github.com/simonangel-fong/eks-multi-tenant-cluster
+          targetRevision: master
+          path: tenant-chart
+          helm:
+            releaseName: "tenant-{{ .name }}"
+            valuesObject:
+              name: "{{ .name }}"
+              sourceRepo: "{{ .sourceRepo }}"
+        - repoURL: "{{ .sourceRepo }}"
+          targetRevision: master
+          path: "{{ .manifestPath }}"
       destination:
         server: https://kubernetes.default.svc
-        namespace: argocd
+        namespace: "{{ .name }}"
       syncPolicy:
         automated:
           prune: true
