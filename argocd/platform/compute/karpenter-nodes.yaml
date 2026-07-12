@@ -15,7 +15,7 @@ spec:
   source:
     repoURL: https://github.com/simonangel-fong/eks-multi-tenant-cluster
     targetRevision: master
-    path: argocd/platform-capabilities/compute/karpenter-nodes
+    path: argocd/platform/compute/karpenter-nodes
     directory:
       recurse: true
   destination:
