@@ -31,9 +31,9 @@ spec:
         targetRevision: master
         path: tenant-chart
         helm:
-          releaseName: "tenant-{{ .name }}"
+          releaseName: "platform-{{ .name }}"
           valuesObject:
-            name: "{{ .name }}"
+            name: "tenant-{{ .name }}"
             sourceRepo: "{{ .sourceRepo }}"
             manifestPath: "{{ .manifestPath }}"
       destination:
