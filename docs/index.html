@@ -2,12 +2,16 @@
 layout: none
 ---
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Multi-tenant Cluster with EKS</title>
   <meta name="description" content="A multi-tenant EKS platform: one cluster, many teams, safe by default. Terraform provisions AWS; ArgoCD delivers everything above.">
+
+  <!-- Bootstrap 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,140 +19,317 @@ layout: none
 </head>
 <body id="top">
 
-  <header class="site-nav">
+  <!-- ================ NAV ================ -->
+  <nav class="navbar navbar-expand-md sticky-top border-bottom">
     <div class="container">
-      <a class="brand" href="#top">EKS Multi-tenant</a>
-      <nav>
-        <a href="#challenge">Challenge &amp; Solution</a>
-        <a href="#architecture">Architecture</a>
-        <a href="#demo">Demo</a>
-        <a href="#summary">Summary</a>
-      </nav>
-      <a class="cta-repo" href="https://github.com/simonangel-fong/eks-multi-tenant-cluster" target="_blank" rel="noopener">GitHub</a>
+      <a class="navbar-brand fw-bold" href="#top">EKS Multi-tenant</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#primaryNav"
+              aria-controls="primaryNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="primaryNav">
+        <ul class="navbar-nav ms-auto align-items-md-center gap-md-2">
+          <li class="nav-item"><a class="nav-link" href="#challenge">Challenge &amp; Solution</a></li>
+          <li class="nav-item"><a class="nav-link" href="#architecture">Architecture</a></li>
+          <li class="nav-item"><a class="nav-link" href="#demo">Tenant Onboarding</a></li>
+          <li class="nav-item"><a class="nav-link" href="#summary">Summary</a></li>
+          <li class="nav-item ms-md-2">
+            <a class="btn btn-outline-light btn-sm"
+               href="https://github.com/simonangel-fong/eks-multi-tenant-cluster"
+               target="_blank" rel="noopener">GitHub</a>
+          </li>
+        </ul>
+      </div>
     </div>
-  </header>
+  </nav>
 
   <main>
 
-    <!-- ================= HERO ================= -->
-    <section class="hero" id="hero">
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <h1 class="hero-title">Multi-tenant Cluster</h1>
-          <p class="hero-subtitle">One Cluster. Multi-tenant. GitOps practices.</p>
-          <p class="hero-desc">
-            A multi-tenant EKS cluster that runs many teams on shared infrastructure.
-            <b>Terraform</b> provisions AWS; <b>ArgoCD</b> runs everything above the API server via GitOps.
-          </p>
+    <!-- ================ HERO ================ -->
+    <section class="hero py-5 py-lg-6 border-bottom" id="hero">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-12 col-md-10">
+            <div class="row">
+              <div class="col-lg-6 text-start">
+                <h1 class="hero-title fw-bold mb-2">Multi-tenant Cluster</h1>
+                <p class="hero-subtitle fw-semibold mb-3">One Cluster. Multi-tenant. GitOps practices.</p>
+                <p class="text-body-secondary mb-4">
+                  A multi-tenant EKS cluster that runs many teams on shared infrastructure.
+                  <strong class="text-body">Terraform</strong> provisions AWS;
+                  <strong class="text-body">ArgoCD</strong> runs everything above the API server via GitOps.
+                </p>
 
-          <ul class="hero-stack" aria-label="Technology stack">
-            <li>AWS EKS</li>
-            <li>Terraform</li>
-            <li>ArgoCD</li>
-            <li>Karpenter</li>
-            <li>Istio ambient</li>
-            <li>AWS Load Balancer Controller</li>
-            <li>cert-manager</li>
-            <li>External Secrets</li>
-            <li>Kyverno</li>
-          </ul>
+                <ul class="hero-stack list-unstyled d-flex flex-wrap gap-2 mb-4">
+                  <li>AWS EKS</li>
+                  <li>Terraform</li>
+                  <li>ArgoCD</li>
+                  <li>Karpenter</li>
+                  <li>Istio ambient</li>
+                  <li>AWS Load Balancer Controller</li>
+                  <li>cert-manager</li>
+                  <li>External Secrets</li>
+                  <li>Kyverno</li>
+                </ul>
 
-          <div class="cta-row">
-            <a class="btn btn-primary" href="https://github.com/simonangel-fong/eks-multi-tenant-cluster" target="_blank" rel="noopener">
-              GitHub Repository
-            </a>
+                <a class="btn btn-light btn-lg" href="https://github.com/simonangel-fong/eks-multi-tenant-cluster"
+                   target="_blank" rel="noopener">GitHub Repository</a>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div class="hero-visual" aria-hidden="true">
-          <!-- Background image / object slot — image asset to be added later. -->
         </div>
       </div>
     </section>
 
     <!-- ============ CHALLENGE & SOLUTION ============ -->
-    <section id="challenge" class="cs">
-      <div class="container">
-        <header class="section-head">
-          <h2>Business Challenge &amp; Solution</h2>
-          <p class="section-lead">
-            Per-team clusters multiply cost and complexity. One shared cluster &mdash; with strong guardrails &mdash; solves it.
-          </p>
-        </header>
+    <section id="challenge" class="py-5 py-lg-6 bg-body-tertiary">
+      <div class="container text-start">
+        <h2 class="fw-bold mb-4">Business Challenge &amp; Solution</h2>
 
-        <div class="cs-grid">
-          <!-- Challenge -->
-          <article class="cs-card cs-problem">
-            <span class="cs-tag">The Challenge</span>
-            <h3>One cluster per team doesn&rsquo;t scale.</h3>
-            <p>
-              For a small or mid-size enterprise, giving every product team its own Kubernetes cluster
-              drives up cost, slows onboarding, and leaves governance inconsistent.
-            </p>
-            <ul class="cs-list">
-              <li><b>Cost multiplies</b> &mdash; one control plane per team.</li>
-              <li><b>Upgrades are painful</b> &mdash; N clusters, N times the work.</li>
-              <li><b>Governance drifts</b> &mdash; different teams, different rules.</li>
-            </ul>
-          </article>
+        <p class="lead text-body-secondary mb-3" style="max-width: 50rem;">
+          For a small or mid-size enterprise, giving every product team its own Kubernetes cluster
+          drives up cost, slows onboarding, and leaves governance inconsistent.
+        </p>
 
-          <!-- Solution -->
-          <article class="cs-card cs-solution">
-            <span class="cs-tag cs-tag-accent">The Solution</span>
-            <h3>One shared EKS cluster. Strong walls between teams.</h3>
-            <p>
-              Platform owns the guardrails (compute, network, security); tenants own their workloads.
-              A new team goes live with one platform PR and one tenant PR.
-            </p>
-            <ul class="cs-benefits">
-              <li>
-                <b>Lower cost</b>
-                <span>Pooled capacity replaces per-team over-provisioning.</span>
-              </li>
-              <li>
-                <b>One platform to run</b>
-                <span>One control plane, one upgrade path, one security baseline.</span>
-              </li>
-              <li>
-                <b>Consistent governance</b>
-                <span>The same guardrails apply to every tenant.</span>
-              </li>
-              <li>
-                <b>Fast onboarding</b>
-                <span>A new team ships in two small PRs.</span>
-              </li>
-            </ul>
-          </article>
-        </div>
+        <blockquote class="cs-question border-start border-4 border-primary bg-primary-subtle
+                          ps-3 py-3 rounded-end fw-semibold mb-3" style="max-width: 50rem;">
+          How can one cluster serve many teams while keeping workloads isolated, secure, and easy to operate?
+        </blockquote>
+
+        <p class="mb-5" style="max-width: 50rem;">
+          This project answers the challenge with a <code>multi-tenant cluster</code> on <code>AWS EKS</code>.
+        </p>
+
+        <h3 class="h5 fw-semibold mb-3">Benefits</h3>
+        <ul class="cs-benefits list-unstyled mb-0" style="max-width: 50rem;">
+          <li class="mb-2"><strong>Lower cost.</strong> Pooled capacity replaces per-team over-provisioning.</li>
+          <li class="mb-2"><strong>One platform to run.</strong> One control plane, one upgrade path, one security baseline.</li>
+          <li class="mb-2"><strong>Consistent governance.</strong> The same guardrails apply to every tenant.</li>
+          <li class="mb-2"><strong>Fast onboarding.</strong> A new team goes live in minutes, driven by GitOps.</li>
+        </ul>
       </div>
     </section>
 
     <!-- =============== ARCHITECTURE =============== -->
-    <section id="architecture">
-      <div class="container">
-        <h2>Architecture &amp; Capabilities</h2>
-        <p class="muted">Placeholder &mdash; filled in next phase.</p>
+    <section id="architecture" class="py-5 py-lg-6">
+      <div class="container text-start">
+        <h2 class="fw-bold mb-2">Architecture &amp; Capabilities</h2>
+        <p class="lead text-body-secondary mb-4" style="max-width: 50rem;">
+          Terraform provisions the AWS foundation. ArgoCD bootstraps everything above the API server via GitOps.
+        </p>
+
+        <figure class="figure d-block mb-4 site-figure">
+          <img src="img/architecture.png" alt="High-level architecture diagram"
+               class="figure-img img-fluid rounded">
+          <figcaption class="figure-caption text-body-secondary mt-3">
+            <ol class="ps-3 mb-0">
+              <li><strong>Terraform</strong> provisions the AWS foundation (VPC, EKS, IAM, Route53).</li>
+              <li><strong>ArgoCD</strong> bootstraps platform capabilities on the cluster.</li>
+              <li>Per-tenant <strong>AppProjects</strong> and <strong>ApplicationSets</strong> sync each team&rsquo;s own manifest repo.</li>
+            </ol>
+          </figcaption>
+        </figure>
+
+        <h3 class="h5 fw-semibold mt-5 mb-3">Four out-of-the-box capabilities</h3>
+        <div class="table-responsive mb-5">
+          <table class="table table-bordered align-middle mb-0">
+            <thead class="table-secondary">
+              <tr>
+                <th scope="col">Capability</th>
+                <th scope="col">Tooling</th>
+                <th scope="col">What tenants get</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Compute</th>
+                <td>Karpenter + workload classes</td>
+                <td>On-demand nodes by class (<code>general</code> / <code>database</code> / <code>gpu</code>)</td>
+              </tr>
+              <tr>
+                <th scope="row">Storage</th>
+                <td>AWS EBS CSI + StorageClasses</td>
+                <td>PVCs on <code>gp3</code> (default) or <code>gp3-iops</code> (high-IOPS)</td>
+              </tr>
+              <tr>
+                <th scope="row">Network</th>
+                <td>Istio ambient + Gateway API + ALBC + external-dns</td>
+                <td>Public URL under <code>&lt;team&gt;.arguswatcher.net</code>, TLS, DNS, mTLS</td>
+              </tr>
+              <tr>
+                <th scope="row">Security</th>
+                <td>ESO + Pod Identity + cert-manager + Kyverno</td>
+                <td>Secret vending, AWS access, wildcard TLS, admission control</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="h5 fw-semibold mb-3">Shared responsibility model</h3>
+        <figure class="figure d-block site-figure">
+          <img src="img/responsibility_model.png" alt="Shared responsibility model between platform and tenants"
+               class="figure-img img-fluid rounded">
+          <figcaption class="figure-caption text-body-secondary mt-3">
+            A clear boundary: platform owns the guardrails; tenants own their workloads.
+          </figcaption>
+        </figure>
       </div>
     </section>
 
-    <!-- ================== DEMO ================== -->
-    <section id="demo">
-      <div class="container">
-        <h2>Sample Demo</h2>
-        <p class="muted">Placeholder &mdash; filled in next phase.</p>
+    <!-- ============== TENANT ONBOARDING ============== -->
+    <section id="demo" class="py-5 py-lg-6 bg-body-tertiary">
+      <div class="container text-start">
+        <h2 class="fw-bold mb-2">Tenant Onboarding</h2>
+        <p class="lead text-body-secondary mb-4" style="max-width: 50rem;">
+          Onboarding a new team takes <strong class="text-body">3 pieces of info</strong>
+          and <strong class="text-body">1 JSON file</strong>. GitOps handles the rest.
+        </p>
+
+        <h3 class="h5 fw-semibold mb-3">The onboarding recipe</h3>
+        <ul class="list-unstyled mb-4" style="max-width: 50rem;">
+          <li class="mb-2">
+            <strong>Tenant provides.</strong>
+            Three fields: <code>name</code>, <code>sourceRepo</code>, <code>manifestPath</code>.
+          </li>
+          <li class="mb-2">
+            <strong>Platform commits.</strong>
+            A single <code>tenants/&lt;team&gt;.json</code> in the platform repo.
+          </li>
+          <li class="mb-2">
+            <strong>GitOps handles.</strong>
+            Namespace, AppProject, ApplicationSet, subdomain, TLS, policy.
+          </li>
+        </ul>
+
+        <figure class="demo-code mb-4" style="max-width: 50rem;">
+          <figcaption class="demo-code-caption">tenants/team-a.json</figcaption>
+<pre class="mb-0"><code>{
+  "name": "team-a",
+  "sourceRepo": "https://github.com/simonangel-fong/eks-multi-tenant-cluster",
+  "manifestPath": "demo-app/team-a"
+}</code></pre>
+        </figure>
+
+        <div class="alert alert-primary demo-ttl mb-5" style="max-width: 50rem;">
+          <strong>Time to live URL:</strong>
+          ~3 min for stateless · ~2 min additional for stateful (PVC + database node).
+        </div>
+
+        <!-- Team A -->
+        <div class="pt-4 mt-4 border-top">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <h3 class="h5 fw-semibold mb-0">Sample Demo: Team A, Stateless App</h3>
+            <span class="badge text-bg-primary">Team A</span>
+          </div>
+          <p class="text-body-secondary mb-3" style="max-width: 50rem;">
+            A simple nginx web app deployed with plain Kubernetes manifests.
+          </p>
+          <dl class="row mb-3 gy-1" style="max-width: 50rem;">
+            <dt class="col-sm-3 text-body-secondary fw-normal small text-uppercase">Node class</dt>
+            <dd class="col-sm-9 mb-0"><code>general</code></dd>
+            <dt class="col-sm-3 text-body-secondary fw-normal small text-uppercase">Public URL</dt>
+            <dd class="col-sm-9 mb-0"><code>team-a.arguswatcher.net</code></dd>
+          </dl>
+          <figure class="figure d-block mb-0 site-figure">
+            <img src="img/team-a.png" alt="Team A stateless web app running"
+                 class="figure-img img-fluid rounded mb-0">
+          </figure>
+        </div>
+
+        <!-- Team B -->
+        <div class="pt-4 mt-5 border-top">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <h3 class="h5 fw-semibold mb-0">Sample Demo: Team B, Stateful App</h3>
+            <span class="badge text-bg-success">Team B</span>
+          </div>
+          <p class="text-body-secondary mb-3" style="max-width: 50rem;">
+            A full-stack to-do app packaged as a Helm chart with a persistent database.
+          </p>
+          <dl class="row mb-3 gy-1" style="max-width: 50rem;">
+            <dt class="col-sm-3 text-body-secondary fw-normal small text-uppercase">Node classes</dt>
+            <dd class="col-sm-9 mb-0"><code>general</code> · <code>database</code></dd>
+            <dt class="col-sm-3 text-body-secondary fw-normal small text-uppercase">Public URL</dt>
+            <dd class="col-sm-9 mb-0"><code>team-b.arguswatcher.net</code></dd>
+          </dl>
+          <figure class="figure d-block mb-0 site-figure">
+            <img src="img/team-b.png" alt="Team B stateful to-do app running"
+                 class="figure-img img-fluid rounded mb-0">
+          </figure>
+        </div>
       </div>
     </section>
 
     <!-- ================ SUMMARY ================ -->
-    <section id="summary">
-      <div class="container">
-        <h2>Summary</h2>
-        <p class="muted">Placeholder &mdash; filled in next phase.</p>
+    <section id="summary" class="py-5 py-lg-6">
+      <div class="container text-start">
+        <h2 class="fw-bold mb-2">Summary</h2>
+        <p class="lead text-body-secondary mb-5" style="max-width: 55rem;">
+          A multi-tenant cluster gives small and mid-size companies a clear responsibility boundary
+          between the platform team and tenant teams.
+        </p>
+
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h3 class="h5 fw-semibold pb-2 mb-3 border-bottom border-primary border-2 d-inline-block">
+              For the platform team
+            </h3>
+            <ul class="sum-list list-unstyled mb-0">
+              <li class="mb-3">
+                <strong class="d-block">Clear ownership</strong>
+                <span class="text-body-secondary">
+                  Focus on platform capabilities and the underlying infrastructure. Nothing tenant-specific.
+                </span>
+              </li>
+              <li class="mb-3">
+                <strong class="d-block">Lower operational overhead</strong>
+                <span class="text-body-secondary">
+                  Run one cluster instead of one per team. One upgrade path, one security baseline.
+                </span>
+              </li>
+              <li class="mb-3">
+                <strong class="d-block">Centralized compliance</strong>
+                <span class="text-body-secondary">
+                  One policy set applies to every tenant, enforced automatically at admission.
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="col-md-6">
+            <h3 class="h5 fw-semibold pb-2 mb-3 border-bottom border-primary border-2 d-inline-block">
+              For the tenant team
+            </h3>
+            <ul class="sum-list list-unstyled mb-0">
+              <li class="mb-3">
+                <strong class="d-block">Clear ownership</strong>
+                <span class="text-body-secondary">
+                  Focus on the application. Manifests live in the tenant&rsquo;s own Git repo; GitOps keeps the cluster in sync.
+                </span>
+              </li>
+              <li class="mb-3">
+                <strong class="d-block">Automatic infrastructure</strong>
+                <span class="text-body-secondary">
+                  Compute, storage, network, and security come out of the box. No manual configuration.
+                </span>
+              </li>
+              <li class="mb-3">
+                <strong class="d-block">Simple onboarding</strong>
+                <span class="text-body-secondary">
+                  Three fields (<code>name</code>, <code>sourceRepo</code>, <code>manifestPath</code>). App is live in minutes.
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </section>
 
   </main>
 
+  <!-- Bootstrap JS bundle (for navbar collapse) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+          crossorigin="anonymous"></script>
   <script src="assets/js/site.js" defer></script>
 </body>
 </html>

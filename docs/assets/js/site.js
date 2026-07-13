@@ -1,6 +1,6 @@
 // Scroll-spy: highlight the nav link whose section is in view.
 (function () {
-  const links = document.querySelectorAll('.site-nav nav a[href^="#"]');
+  const links = document.querySelectorAll('.navbar .nav-link[href^="#"]');
   if (!links.length) return;
 
   const map = new Map();

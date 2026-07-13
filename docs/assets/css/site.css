@@ -1,330 +1,187 @@
-/* -------- design tokens -------- */
+/* -------- design tokens (override Bootstrap) -------- */
 :root {
-  --bg: #ffffff;
-  --surface: #f7f8fa;
-  --border: #e5e7eb;
-  --text: #0f172a;
-  --muted: #475569;
-  --accent: #326ce5;         /* kubernetes blue */
-  --accent-hover: #234fb0;
-  --accent-soft: #e8efff;
-
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-               Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas,
-               "Liberation Mono", monospace;
-
-  --container: 1080px;
-  --radius: 12px;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
-  --shadow-md: 0 8px 24px rgba(15, 23, 42, .08);
+  --bs-body-font-family: "Inter", ui-sans-serif, system-ui, -apple-system,
+                         "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bs-font-monospace: ui-monospace, SFMono-Regular, "SF Mono", Consolas,
+                       "Liberation Mono", monospace;
 }
 
-/* -------- base -------- */
-* { box-sizing: border-box; }
+/* Dark theme accents (applies when <html data-bs-theme="dark">) */
+[data-bs-theme="dark"] {
+  --bs-primary: #4d8bff;                       /* brighter kubernetes-blue for dark bg */
+  --bs-primary-rgb: 77, 139, 255;
+  --bs-body-bg: #0b1220;                       /* deep slate */
+  --bs-body-color: #e2e8f0;
+  --bs-secondary-color: #94a3b8;
+  --bs-tertiary-bg: #111a2e;
+  --bs-border-color: #1e293b;
+  --bs-border-color-translucent: rgba(255, 255, 255, .1);
+}
 
+/* smooth anchor jumps */
 html { scroll-behavior: smooth; }
 
-body {
-  margin: 0;
-  font-family: var(--font-sans);
-  color: var(--text);
-  background: var(--bg);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+/* Extra vertical padding utility used on sections (Bootstrap only has py-5) */
+.py-lg-6 { padding-top: 6rem !important; padding-bottom: 6rem !important; }
+@media (max-width: 991.98px) {
+  .py-lg-6 { padding-top: 3.5rem !important; padding-bottom: 3.5rem !important; }
 }
 
-a { color: var(--accent); text-decoration: none; }
-a:hover { color: var(--accent-hover); text-decoration: underline; }
-
-/* -------- layout -------- */
-.container {
-  max-width: var(--container);
-  margin-inline: auto;
-  padding-inline: 1.5rem;
+/* Extra horizontal breathing room on non-hero sections.
+   Hero keeps Bootstrap's default container padding. */
+@media (min-width: 992px) {
+  main > section:not(.hero) > .container { padding-inline: 4rem; }
+}
+@media (min-width: 1400px) {
+  main > section:not(.hero) > .container { padding-inline: 6rem; }
 }
 
-section {
-  padding-block: 5rem;
-  border-bottom: 1px dashed var(--border); /* dev-only, remove in polish */
-}
-
-/* -------- top nav -------- */
-.site-nav {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: rgba(255, 255, 255, .85);
-  backdrop-filter: saturate(180%) blur(10px);
-  border-bottom: 1px solid var(--border);
-}
-.site-nav .container {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  height: 60px;
-}
-.site-nav .brand {
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -.01em;
-}
-.site-nav nav {
-  display: flex;
-  gap: 1.25rem;
-  margin-left: auto;
-  font-size: .95rem;
-}
-.site-nav nav a { color: var(--muted); }
-.site-nav nav a:hover,
-.site-nav nav a.is-active { color: var(--text); text-decoration: none; }
-.site-nav .cta-repo {
-  padding: .4rem .85rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-  font-size: .9rem;
-}
-.site-nav .cta-repo:hover { background: var(--surface); text-decoration: none; }
-
-/* -------- hero -------- */
-.hero {
-  padding-block: 6rem 5rem;
-  /* Background image slot — swap the URL when the asset is ready.
-     Object should sit on the right; keep left ~50% clear for text. */
-  background:
-    linear-gradient(180deg, #fafbff 0%, var(--bg) 100%);
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-}
-
-.hero-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 3rem;
-  align-items: center;
-}
-
-.hero-copy { max-width: 34rem; }
-
+/* -------- typography accents -------- */
 .hero-title {
   font-size: clamp(2.25rem, 4.8vw, 3.6rem);
   line-height: 1.1;
   letter-spacing: -.02em;
-  margin: 0 0 .75rem;
 }
-
 .hero-subtitle {
   font-size: clamp(1.05rem, 1.6vw, 1.25rem);
-  color: var(--accent);
-  font-weight: 600;
-  margin: 0 0 1.25rem;
+  color: var(--bs-primary);
 }
 
-.hero-desc {
-  font-size: 1.05rem;
-  color: var(--muted);
-  margin: 0 0 1.75rem;
-  max-width: 40rem;
-}
-.hero-desc b { color: var(--text); font-weight: 600; }
+h2 { font-size: clamp(1.6rem, 2.6vw, 2.2rem); letter-spacing: -.015em; }
 
-.hero-stack {
+/* inline code chips */
+code {
+  font-family: var(--bs-font-monospace);
+  font-size: .88em;
+  background: var(--bs-tertiary-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 5px;
+  padding: .05rem .4rem;
+  color: var(--bs-primary);
+  white-space: nowrap;
+}
+
+/* -------- hero -------- */
+.hero {
+  position: relative;
+  min-height: 520px;
   display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
-  list-style: none;
-  padding: 0;
-  margin: 0 0 2rem;
+  align-items: center;
+  /* Left-to-right dark fade over the image keeps the left-side text readable
+     while letting the right side of the image show through cleanly. */
+  background-image:
+    linear-gradient(90deg,
+      rgba(11, 18, 32, .95) 0%,
+      rgba(11, 18, 32, .85) 40%,
+      rgba(11, 18, 32, .35) 70%,
+      rgba(11, 18, 32, 0) 100%),
+    url("../img/bg-image.jpg");
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
 }
+
+@media (max-width: 767.98px) {
+  /* On mobile the image sits behind the text; use a stronger flat overlay for legibility. */
+  .hero {
+    min-height: 0;
+    background-image:
+      linear-gradient(rgba(11, 18, 32, .9), rgba(11, 18, 32, .85)),
+      url("../img/bg-image.jpg");
+    background-position: center;
+  }
+}
+
 .hero-stack li {
-  font-family: var(--font-mono);
+  font-family: var(--bs-font-monospace);
   font-size: .8rem;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  color: var(--bs-secondary-color);
+  background: var(--bs-tertiary-bg);
+  border: 1px solid #e5e7eb;
   border-radius: 999px;
   padding: .25rem .65rem;
   white-space: nowrap;
 }
+.hero-svg { max-width: 520px; }
 
-.cta-row {
-  display: inline-flex;
-  gap: .75rem;
-  flex-wrap: wrap;
+/* -------- navbar polish -------- */
+.navbar {
+  backdrop-filter: saturate(180%) blur(10px);
+  background: rgba(11, 18, 32, .85) !important;
 }
+.navbar .nav-link { color: var(--bs-secondary-color); font-size: .95rem; }
+.navbar .nav-link:hover,
+.navbar .nav-link.is-active { color: var(--bs-body-color); }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  padding: .7rem 1.15rem;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: .95rem;
-  transition: transform .05s ease, background .15s ease, box-shadow .15s ease;
+/* -------- images: uniform width, left-aligned -------- */
+.site-figure {
+  max-width: 720px;         /* consistent width across the page */
+  margin-left: 0;           /* left-aligned, not centered */
+  margin-right: 0;
 }
-.btn:hover { text-decoration: none; }
-.btn:active { transform: translateY(1px); }
-.btn-primary {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: var(--shadow-sm);
-}
-.btn-primary:hover { background: var(--accent-hover); color: #fff; }
-
-/* right-side image slot */
-.hero-visual {
-  min-height: 320px;
-  border-radius: var(--radius);
-  /* placeholder look until the real image lands */
-  background:
-    radial-gradient(400px 240px at 70% 40%, var(--accent-soft), transparent 70%),
-    repeating-linear-gradient(
-      45deg,
-      transparent 0 10px,
-      rgba(50, 108, 229, .04) 10px 11px
-    );
-  border: 1px dashed var(--border);
+.site-figure img {
+  width: 100%;
+  height: auto;
 }
 
-/* -------- section header -------- */
-.section-head {
-  max-width: 46rem;
-  margin: 0 auto 3rem;
-  text-align: center;
-}
-.section-head h2 {
-  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
-  letter-spacing: -.015em;
-  margin: 0 0 .75rem;
-}
-.section-lead {
-  color: var(--muted);
-  font-size: 1.05rem;
-  margin: 0;
-}
-
-/* -------- challenge & solution -------- */
-.cs-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  align-items: stretch;
-}
-.cs-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.75rem;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-}
-.cs-solution {
-  background: linear-gradient(180deg, var(--accent-soft) 0%, #fff 60%);
-  border-color: color-mix(in srgb, var(--accent) 25%, var(--border));
-}
-.cs-card h3 {
-  font-size: 1.2rem;
-  line-height: 1.35;
-  margin: 0 0 .75rem;
-  letter-spacing: -.01em;
-}
-.cs-card > p {
-  color: var(--muted);
-  margin: 0 0 1.25rem;
-}
-.cs-tag {
-  display: inline-block;
-  font-size: .75rem;
-  font-weight: 600;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: .2rem .65rem;
-  margin-bottom: 1rem;
-  width: max-content;
-}
-.cs-tag-accent {
-  color: var(--accent);
-  background: #fff;
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
-}
-
-/* problem bullets */
-.cs-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.cs-list li {
+/* -------- benefit / summary bullets -------- */
+.cs-benefits li,
+.sum-list li {
   position: relative;
-  padding: .5rem 0 .5rem 1.5rem;
-  color: var(--muted);
-  border-top: 1px solid var(--border);
+  padding-left: 1.5rem;
 }
-.cs-list li:first-child { border-top: 0; }
-.cs-list li::before {
+.cs-benefits li::before,
+.sum-list li::before {
   content: "";
   position: absolute;
-  left: 0; top: 1rem;
+  left: 0; top: .55rem;
   width: .5rem; height: .5rem;
-  background: #ef4444;   /* red-500 for pain */
+  background: var(--bs-primary);
   border-radius: 999px;
 }
-.cs-list b { color: var(--text); font-weight: 600; }
 
-/* benefit list */
-.cs-benefits {
-  list-style: none;
-  padding: 0;
+/* -------- JSON code block (dark) -------- */
+.demo-code {
   margin: 0;
-  display: grid;
-  gap: .85rem;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: .5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
 }
-.cs-benefits li {
-  position: relative;
-  padding: .1rem 0 .1rem 1.6rem;
-}
-.cs-benefits li::before {
-  content: "✓";
-  position: absolute;
-  left: 0; top: 0;
-  width: 1.15rem; height: 1.15rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.demo-code-caption {
+  font-family: var(--bs-font-monospace);
   font-size: .8rem;
-  font-weight: 700;
-  color: #fff;
-  background: var(--accent);
-  border-radius: 999px;
-  line-height: 1;
+  color: #94a3b8;
+  background: #1e293b;
+  padding: .5rem 1rem;
+  border-bottom: 1px solid #334155;
+  letter-spacing: .02em;
 }
-.cs-benefits b {
-  display: block;
-  color: var(--text);
-  font-weight: 600;
-  font-size: .98rem;
+.demo-code pre {
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
 }
-.cs-benefits span {
-  color: var(--muted);
-  font-size: .92rem;
-}
-
-/* -------- responsive -------- */
-@media (max-width: 860px) {
-  .hero-grid { grid-template-columns: 1fr; gap: 2rem; }
-  .hero-visual { min-height: 220px; order: 2; }
+.demo-code code {
+  font-family: var(--bs-font-monospace);
+  font-size: .88rem;
+  color: #e2e8f0;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  line-height: 1.6;
+  white-space: pre;
 }
 
-@media (max-width: 720px) {
-  .site-nav nav { display: none; }  /* hamburger comes in polish phase */
-  .hero { padding-block: 4.5rem 3.5rem; }
-  .cs-grid { grid-template-columns: 1fr; }
+/* -------- alert (Time to live URL) -------- */
+.demo-ttl { font-size: .95rem; }
+.demo-ttl strong { color: var(--bs-body-color); }
+
+/* -------- table polish -------- */
+.table > :not(caption) > * > * {
+  padding: .8rem 1rem;
 }
+.table code { background: var(--bs-body-bg); }
+
+/* -------- blockquote question -------- */
+.cs-question { margin: 0 0 1rem 0; font-size: 1.05rem; }
