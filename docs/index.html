@@ -7,8 +7,108 @@ layout: none
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Multi-tenant Cluster with EKS</title>
+  <meta name="description" content="A multi-tenant EKS platform: one cluster, many teams, safe by default. Terraform provisions AWS; ArgoCD delivers everything above.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/site.css">
 </head>
-<body>
-  <h1>Hello world</h1>
+<body id="top">
+
+  <header class="site-nav">
+    <div class="container">
+      <a class="brand" href="#top">EKS Multi-tenant</a>
+      <nav>
+        <a href="#challenge">Challenge</a>
+        <a href="#solution">Solution</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#demo">Demo</a>
+        <a href="#summary">Summary</a>
+      </nav>
+      <a class="cta-repo" href="https://github.com/simonangel-fong/eks-multi-tenant-cluster" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero" id="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <h1 class="hero-title">Multi-tenant Cluster</h1>
+          <p class="hero-subtitle">One Cluster. Multi-tenant. GitOps practices.</p>
+          <p class="hero-desc">
+            A multi-tenant EKS cluster that runs many teams on shared infrastructure.
+            <b>Terraform</b> provisions AWS; <b>ArgoCD</b> runs everything above the API server via GitOps.
+          </p>
+
+          <ul class="hero-stack" aria-label="Technology stack">
+            <li>AWS EKS</li>
+            <li>Terraform</li>
+            <li>ArgoCD</li>
+            <li>Karpenter</li>
+            <li>Istio ambient</li>
+            <li>AWS Load Balancer Controller</li>
+            <li>cert-manager</li>
+            <li>External Secrets</li>
+            <li>Kyverno</li>
+          </ul>
+
+          <div class="cta-row">
+            <a class="btn btn-primary" href="https://github.com/simonangel-fong/eks-multi-tenant-cluster" target="_blank" rel="noopener">
+              GitHub Repository
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <!-- Background image / object slot — image asset to be added later. -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================ CHALLENGE ================ -->
+    <section id="challenge">
+      <div class="container">
+        <h2>Business Challenge</h2>
+        <p class="muted">Placeholder &mdash; filled in next phase.</p>
+      </div>
+    </section>
+
+    <!-- ================ SOLUTION ================ -->
+    <section id="solution">
+      <div class="container">
+        <h2>Solution &amp; Benefits</h2>
+        <p class="muted">Placeholder &mdash; filled in next phase.</p>
+      </div>
+    </section>
+
+    <!-- =============== ARCHITECTURE =============== -->
+    <section id="architecture">
+      <div class="container">
+        <h2>Architecture &amp; Capabilities</h2>
+        <p class="muted">Placeholder &mdash; filled in next phase.</p>
+      </div>
+    </section>
+
+    <!-- ================== DEMO ================== -->
+    <section id="demo">
+      <div class="container">
+        <h2>Sample Demo</h2>
+        <p class="muted">Placeholder &mdash; filled in next phase.</p>
+      </div>
+    </section>
+
+    <!-- ================ SUMMARY ================ -->
+    <section id="summary">
+      <div class="container">
+        <h2>Summary</h2>
+        <p class="muted">Placeholder &mdash; filled in next phase.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="assets/js/site.js" defer></script>
 </body>
 </html>
