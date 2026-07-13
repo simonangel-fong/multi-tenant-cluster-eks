@@ -1,6 +1,6 @@
 # Multi-tenant Cluster with EKS
 
-> One Cluster; Multi-tanent; GitOps practices
+> One Cluster. Multi-tanent. GitOps practices
 
 A multi-tenant EKS cluster that runs many teams on shared infrastructure. Terraform provisions AWS; ArgoCD runs everything above the API server via GitOps.
 
