@@ -22,7 +22,7 @@ spec:
         clusterName: multi-tenant-eks-dev
         region: ca-central-1
         vpcId: 
-          vpc-0bc2f9cdf293a7ed5
+          vpc-0d4bbd7f7c431ebe2
         serviceAccount:
           create: true
           name: aws-load-balancer-controller

@@ -21,7 +21,6 @@ data "aws_iam_policy_document" "eso_read" {
     ]
     resources = [
       aws_secretsmanager_secret.eso_cloudflare.arn,
-      aws_secretsmanager_secret.eso_slack_webhook.arn,
     ]
   }
 }
@@ -56,14 +55,14 @@ resource "aws_secretsmanager_secret_version" "cloudflare" {
   secret_string = jsonencode({ apiToken = var.cloudflare_api_token })
 }
 
-# ##############################
-# Secrets: slack-webhook
-# ##############################
-resource "aws_secretsmanager_secret" "eso_slack_webhook" {
-  name = "${local.common_name}/slack-webhook"
-}
+# # ##############################
+# # Secrets: slack-webhook
+# # ##############################
+# resource "aws_secretsmanager_secret" "eso_slack_webhook" {
+#   name = "${local.common_name}/slack-webhook"
+# }
 
-resource "aws_secretsmanager_secret_version" "slack_webhook" {
-  secret_id     = aws_secretsmanager_secret.eso_slack_webhook.id
-  secret_string = jsonencode({ url = var.slack_webhook_url })
-}
+# resource "aws_secretsmanager_secret_version" "slack_webhook" {
+#   secret_id     = aws_secretsmanager_secret.eso_slack_webhook.id
+#   secret_string = jsonencode({ url = var.slack_webhook_url })
+# }

@@ -1,38 +1,42 @@
 # Multi-tenant Cluster with EKS
 
-> A production-shape EKS cluster that hosts multiple teams on shared infrastructure. Terraform provisions AWS; ArgoCD runs everything above the API server via GitOps.
+> A multi-tenant EKS cluster that runs many teams on shared infrastructure. Terraform provisions AWS; ArgoCD runs everything above the API server via GitOps.
 
 **AWS EKS · Terraform · ArgoCD · Karpenter · Istio (ambient) · AWS Load Balancer Controller · cert-manager · External Secrets · Kyverno**
+
+- [Multi-tenant Cluster with EKS](#multi-tenant-cluster-with-eks)
+  - [The Challenge](#the-challenge)
+  - [The Multi-tenant Cluster](#the-multi-tenant-cluster)
+  - [Architecture](#architecture)
+  - [Quick Start](#quick-start)
+  - [Onboarding Demo](#onboarding-demo)
+    - [Stateless: Team A](#stateless-team-a)
+    - [Stateful: Team B](#stateful-team-b)
+  - [Limitations \& Roadmap](#limitations--roadmap)
+  - [Documentation](#documentation)
 
 ---
 
 ## The Challenge
 
-In a small to mid-size enterprise, giving every product team its own cluster drives up cost, slows onboarding, and leaves governance inconsistent.
+In a small or mid-size enterprise, giving every product team its own Kubernetes cluster drives up cost, slows onboarding, and leaves governance inconsistent.
 
-> How to serve many teams from one cluster while keeping each team's workloads isolated, safe, and easy to operate?
-
-This project creates a multi-tenant cluster(`Soft Multi-Tenancy`) on EKS: one namespace, one subdomain, and one deploy path per team, on top of shared compute, storage, ingress, TLS, DNS, and mTLS.
+> **How can one cluster serve many teams while keeping workloads isolated, secure, and easy to operate?**
 
 ---
 
-## Multi-tenant Cluster
+## The Multi-tenant Cluster
 
-- `multi-tenant cluster`
-  - a single Kubernetes cluster that is shared by multiple independent users, teams, or organizations (tenants).
+This project answers the challenge with a **multi-tenant cluster on EKS** — a single Kubernetes cluster shared by multiple teams, with platform-owned guardrails and tenant-owned workloads.
 
-Benefits:
+**Why multi-tenant:**
 
-- **Lower cost**:
-  - pooled capacity replaces per-team over-provisioning.
-- **One platform to run**
-  - one control plane, one upgrade path, one security baseline.
+- **Lower cost** — pooled capacity replaces per-team over-provisioning.
+- **One platform to run** — one control plane, one upgrade path, one security baseline.
 - **Consistent governance** — the same guardrails apply to every tenant.
 - **Fast onboarding** — a new team goes live with one platform PR and one tenant PR.
 
----
-
-## Capabilities
+**How the project delivers it** — four out-of-the-box capabilities:
 
 | Capability | Tooling                                           | What tenants get                                            |
 | ---------- | ------------------------------------------------- | ----------------------------------------------------------- |
@@ -43,16 +47,54 @@ Benefits:
 
 ---
 
+## Architecture
+
+Terraform provisions the AWS foundation (VPC, EKS, IAM, Route53). ArgoCD then bootstraps everything above the API server: platform capabilities first, then per-tenant AppProjects and ApplicationSets that sync each team's own manifest repo.
+
+![Architecture](docs/img/architecture.png)
+
+```txt
+                Platform owns              │   Tenant owns
+────────────────────────────────────────────┼─────────────────────────────────
+Cluster        EKS control plane           │   —
+               VPC, subnets, IAM           │
+────────────────────────────────────────────┼─────────────────────────────────
+Compute        Karpenter + NodePools       │   nodeSelector on Pods
+               (general/database/gpu)      │
+────────────────────────────────────────────┼─────────────────────────────────
+Storage        StorageClasses              │   PVCs
+               (gp3, gp3-iops)             │
+────────────────────────────────────────────┼─────────────────────────────────
+Network        Gateway, ALB, external-dns  │   HTTPRoute
+               wildcard TLS cert           │   Service
+               Istio ambient mesh          │
+────────────────────────────────────────────┼─────────────────────────────────
+Security       Namespace, AppProject       │   AWS access via PodIdentity
+               NetworkPolicy defaults      │   ExternalSecret references
+               Kyverno policies            │
+               ESO controller              │
+────────────────────────────────────────────┼─────────────────────────────────
+Delivery       ApplicationSet generator    │   Application manifests
+               tenant-chart template       │   (repo + manifestPath)
+
+```
+
+---
+
 ## Quick Start
+
+**Prerequisites:** `terraform` ≥ 1.6, `awscli` v2, `kubectl`, AWS credentials with EKS/VPC/IAM permissions, an S3 + DynamoDB backend matching `infra/backend.hcl`, and a Route53 hosted zone for `arguswatcher.net` (or a replacement domain).
 
 ```sh
 # 1. Provision AWS
 terraform -chdir=infra init -backend-config=backend.hcl
-terraform -chdir=infra apply -auto-approve
+terraform -chdir=infra apply
 
 # 2. Bootstrap the cluster
+#    app-of-apps.yaml points ArgoCD at this repo's argocd/bootstrap tree,
+#    which fans out into every platform capability and tenant.
 aws eks update-kubeconfig --region ca-central-1 --name multi-tenant-eks-dev
-kubectl apply -f argocd/root.yaml
+kubectl apply -f app-of-apps.yaml
 
 # 3. Access ArgoCD UI: https://localhost:8080
 kubectl -n argocd port-forward svc/argocd-server 8080:443
@@ -64,44 +106,77 @@ kubectl -n argocd port-forward svc/argocd-server 8080:443
 
 ---
 
-## Demo Tenants
+## Onboarding Demo
 
-Two sample tenants exercise the full contract end-to-end.
+Onboarding a new team takes **3 pieces of info and 1 JSON file**.
 
-### Team A — stateless
+- **Tenant provides:** `team_name`, `repo_url`, `manifest_path`
+- **Platform engineer commits:** `<team_name>.json` at the repo root — e.g. [team-a.json](team-a.json):
 
-Simple nginx web app on `general` nodes, using
+```json
+{
+  "name": "team-a",
+  "sourceRepo": "https://github.com/simonangel-fong/eks-multi-tenant-cluster",
+  "manifestPath": "demo-app/team-a"
+}
+```
 
-- compute
-- ingress + TLS + DNS.
-
-Manifests: [demo-app/team-a/](demo-app/team-a/)
-
-- URL: `https://team-a.arguswatcher.net`
-
-![team-a](docs/img/team-a.png)
+- **GitOps handles the rest** — namespace, AppProject, ApplicationSet, subdomain, TLS, and policy.
+- **Public URL:** `https://<team_name>.arguswatcher.net`
+- **Time to live URL:** ~3 minutes for a stateless app, ~2 additional minutes for a stateful app (PVC + database class node).
 
 ---
 
-### Team B — stateful
+### Stateless: Team A
 
-Full-stack to-do app, using
+- **Application:** simple nginx web app, plain Kubernetes manifests ([demo-app/team-a/](demo-app/team-a/))
+- **Node class:** `general` — see [docs/tenant/compute.md](docs/tenant/compute.md) for the nodeSelector pattern.
+- **URL:** `https://team-a.arguswatcher.net`
 
-- compute
-- storage
-- ingress + TLS + DNS.
+![capture: team-a web](docs/img/team-a.png)
 
-Manifests: [demo-app/team-b/](demo-app/team-b/)
+---
 
-- URL: `https://team-b.arguswatcher.net`
+### Stateful: Team B
 
-![team-b](docs/img/team-b.png)
+- **Application:** full-stack to-do app, Helm chart ([demo-app/team-b/](demo-app/team-b/))
+- **Node classes:** `general` (frontend, backend) · `database` (database) — see [docs/tenant/compute.md](docs/tenant/compute.md) for the nodeSelector pattern.
+- **URL:** `https://team-b.arguswatcher.net`
+
+![capture: team-b web](docs/img/team-b.png)
+
+---
+
+## Limitations & Roadmap
+
+**Scope:** targeted at small and mid-size enterprises with a handful of product teams.
+
+**Known limitations:**
+
+- **Self-service UI** — out of scope; onboarding is GitOps-driven via a JSON file.
+- **Observability** — multi-tenant monitoring, logging, and tracing are still in progress.
+- **Single region, single cluster** — no multi-region failover or cross-region DR.
+- **Cost showback** — the _lower cost_ benefit is architectural, not measured; per-tenant chargeback dashboards are not shipped.
+
+**Roadmap:**
+
+| Stage         | Scope                                                                                         | Status         |
+| ------------- | --------------------------------------------------------------------------------------------- | -------------- |
+| Foundation    | Compute, storage, networking, and security capabilities                                       | ✅ Done        |
+| Observability | Multi-tenant monitoring, logging, and tracing on the LGTM stack (Loki, Grafana, Tempo, Mimir) | 🚧 In progress |
+| Advanced      | GPU workloads and AI agent applications                                                       | 📋 Planned     |
 
 ---
 
 ## Documentation
 
-**Platform runbooks**: how the platform team operates each capability.
+**Tenant guides** — read to onboard an app.
+
+- [Onboarding](docs/tenant/onboarding.md)
+- [Compute](docs/tenant/compute.md)
+- [Network](docs/tenant/network.md)
+
+**Platform runbooks** — read to operate the cluster.
 
 - [Compute](docs/platform/compute.md)
 - [Storage](docs/platform/storage.md)
@@ -109,19 +184,4 @@ Manifests: [demo-app/team-b/](demo-app/team-b/)
 - [Security](docs/platform/security.md)
 - [Tenant onboarding](docs/platform/onboarding.md)
 
-**Tenant guides**: how a team lands an application on the platform.
-
-- [Onboarding](docs/tenant/onboarding.md)
-- [Compute](docs/tenant/compute.md)
-- [Network](docs/tenant/network.md)
-
 ---
-
-## Roadmap
-
-| Stage         | Scope                                                                                         | Status         |
-| ------------- | --------------------------------------------------------------------------------------------- | -------------- |
-| Foundation    | Compute, storage, networking, and security capabilities                                       | ✅ Done        |
-| Observability | Multi-tenant monitoring, logging, and tracing on the LGTM stack (Loki, Grafana, Tempo, Mimir) | 🚧 In progress |
-| Delivery      | Progressive rollouts and canary analysis via Argo Rollouts                                    | 🚧 In progress |
-| Advanced      | GPU workloads and AI agent applications                                                       | 📋 Planned     |
