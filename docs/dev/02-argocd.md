@@ -12,30 +12,79 @@
 
 ## Repo Layout
 
-App-of-apps hierarchy: `root.yaml` → `bootstrap/` → `projects/` + `platform/` + `tenants/`.
+App-of-apps chain, ordered by sync-wave:
+
+`app-of-apps.yaml` (root) → `argocd/bootstrap/` → `argocd/platform-init/` (wave 0) + `argocd/platform-capabilities/` (wave 1) → `tenants/*.json` (ApplicationSet, wave 100)
 
 ```
-argocd/
-├── root.yaml                # entry point; points at bootstrap/
-├── bootstrap/               # first-level app-of-apps
-│   ├── projects.yaml        # syncs projects/
-│   ├── platform.yaml        # syncs platform/
-│   └── tenants.yaml         # syncs tenants/
-├── projects/                # AppProject guardrails (RBAC, allowed repos/destinations)
-│   ├── platform.yaml
-│   ├── team-a.yaml
-│   └── team-b.yaml
-├── platform/                # cluster-wide capabilities (managed by platform team)
-│   ├── compute/             # karpenter + NodePools/EC2NodeClasses
-│   ├── delivery/            # argo-rollouts + AnalysisTemplates
-│   ├── networking/          # istio (ambient), ALBC, external-dns, gateway-api CRDs
-│   ├── observability/       # kube-prometheus-stack, loki, alloy
-│   ├── security/            # cert-manager, ESO, kyverno + policies
-│   └── storage/             # gp3 / gp3-iops StorageClasses
-└── tenants/                 # per-tenant Application entries
-    ├── team-a.yaml
-    └── team-b.yaml
+.
+├── app-of-apps.yaml                  # root Application; points at argocd/bootstrap/
+├── argocd/
+│   ├── bootstrap/                    # first-level app-of-apps (wave-ordered)
+│   │   ├── 01-platform-init.yaml     # wave 0 — projects + tenants ApplicationSet
+│   │   └── 02-platform-capabilities.yaml   # wave 1 — capability Applications
+│   │
+│   ├── platform-init/                # AppProjects + tenants ApplicationSet
+│   │   ├── init.yaml                 # platform AppProject, base namespaces
+│   │   ├── tenants-project.yaml      # AppProject for ApplicationSet-generated apps
+│   │   └── tenants-appset.yaml       # generator: reads tenants/*.json → tenant-<name>
+│   │
+│   └── platform-capabilities/        # cluster-wide capabilities (sync-wave 10–40+)
+│       ├── compute/                  # Karpenter + NodePools + EC2NodeClasses
+│       ├── storage/                  # EBS CSI + StorageClasses (gp3, gp3-iops)
+│       ├── networking/               # Istio ambient, ALBC, external-dns, Gateway API CRDs
+│       └── security/                 # cert-manager, ESO, Kyverno + policies
+│
+├── tenant-chart/                     # Helm chart rendered per tenant by ApplicationSet
+│   ├── Chart.yaml
+│   ├── values.yaml                   # baseline quota, LimitRange defaults
+│   └── templates/                    # Namespace, AppProject, NetworkPolicy, PeerAuth, RQ, LR
+│
+└── tenants/                          # one JSON per onboarded team (schema: name, sourceRepo, manifestPath)
+    ├── team-a.json
+    └── team-b.json
 ```
+
+**How a tenant is born:**
+
+1. A JSON file lands at `tenants/<team>.json`.
+2. The `tenants` ApplicationSet in `platform-init/tenants-appset.yaml` matches it and templates a new `Application` `tenant-<name>` with two sources: `tenant-chart/` (guardrails) and the tenant's own `sourceRepo` (workloads).
+3. ArgoCD syncs both into the tenant's namespace at wave 100.
+
+### Sync-wave order
+
+Every Application carries an `argocd.argoproj.io/sync-wave` annotation. Lower numbers sync first; ArgoCD blocks on health before advancing.
+
+| Wave    | Application                          | Purpose                                                       |
+| :-----: | ------------------------------------ | ------------------------------------------------------------- |
+| **0**   | `01-platform-init`                   | AppProjects (`platform`, `tenants`) + tenants ApplicationSet. |
+| **1**   | `02-platform-capabilities`           | Fans out to every capability Application below.               |
+| 10      | `platform-karpenter`                 | Karpenter controller.                                         |
+| 11      | `platform-karpenter-nodes`           | `NodePool` + `EC2NodeClass` for `general` / `database` / `gpu`. |
+| 20      | `platform-storage-classes`           | `gp3` (default) and `gp3-iops` StorageClasses.                |
+| 30      | `platform-cert-manager`              | cert-manager controller.                                      |
+| 30      | `platform-eso`                       | External Secrets Operator controller.                         |
+| 30      | `platform-kyverno`                   | Kyverno admission controller.                                 |
+| 31      | `platform-eso-resources`             | `ClusterSecretStore` + ESO Namespaces + upstream secrets.     |
+| 32      | `platform-cert-manager-resources`    | `ClusterIssuer` (Let's Encrypt DNS-01).                       |
+| 33      | `platform-kyverno-policies`          | `ClusterPolicy` set — lands last so tenants aren't rejected before prerequisites exist. |
+| 40      | `platform-albc`                      | AWS Load Balancer Controller.                                 |
+| 40      | `platform-gateway-api-crds`          | Gateway API v1 CRDs.                                          |
+| 41      | `platform-istio-base`                | Istio CRDs + base cluster resources.                          |
+| 42      | `platform-istio-cni`                 | Istio CNI plugin.                                             |
+| 42      | `platform-istiod`                    | Istio control plane.                                          |
+| 43      | `platform-istio-ztunnel`             | Ambient data plane (per-node ztunnel).                        |
+| 44      | `platform-istio-gateway`             | Shared `Gateway` + wildcard `Certificate` + `istio-ingress` namespace. |
+| 44      | `platform-external-dns`              | Route 53 record writer (reads `HTTPRoute.spec.hostnames`).    |
+| **100** | `tenant-<name>` (× N)                | Per-tenant Applications generated by the ApplicationSet.      |
+
+**Reading the ordering:**
+
+- Waves `0–1` establish the app-of-apps graph.
+- Waves `10–20` bring compute and storage online (nodes must exist before pods can land).
+- Wave `30` starts the three security controllers in parallel; their resources (`31/32/33`) follow strictly serially so CRDs exist before instances.
+- Waves `40–44` build the ingress chain bottom-up: ALBC + CRDs → Istio base → CNI + istiod → ztunnel → Gateway + DNS.
+- Wave `100` opens the cluster to tenants — every prerequisite is guaranteed green.
 
 ---
 
