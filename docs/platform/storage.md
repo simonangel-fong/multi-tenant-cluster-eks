@@ -14,37 +14,39 @@
 
 ## Overview
 
-The platform ships out-of-the-box block storage via the **AWS EBS CSI driver**. Tenants request storage by `storageClassName`; the platform owns the driver, IAM, and StorageClass parameters.
+The platform ships out-of-the-box block storage via the **AWS EBS CSI driver**. Tenants request storage by `storageClassName`; the platform owns the driver, IAM, and StorageClass parameters. Volumes are AZ-scoped and `ReadWriteOnce` only — multi-AZ or `ReadWriteMany` workloads are not supported (no EFS).
 
 ---
 
 ## Implementation
 
-1. **Install the CSI driver** as an EKS-managed add-on with Pod Identity ([infra/13-eks-csi.tf](../../infra/13-eks-csi.tf)).
-2. **Publish StorageClasses** via GitOps ([argocd/platform/storage/](../../argocd/platform/storage/)):
+1. **Install the CSI driver** as an EKS-managed add-on with Pod Identity ([infra/13-eks-csi.tf](../../infra/13-eks-csi.tf)). The controller runs on `platform` nodes (via toleration); the CSI node DaemonSet runs on every node.
+2. **Publish StorageClasses** via GitOps ([argocd/platform-capabilities/storage/storage-classes/](../../argocd/platform-capabilities/storage/storage-classes/)):
    - `gp3.yaml` — default class
    - `gp3-iops.yaml` — high-IOPS class for stateful workloads
+
+Bootstrap ordering: the storage Application syncs at wave `20` inside `02-platform-capabilities`, after compute (wave `10`) has brought up the first nodes.
 
 ---
 
 ## Responsibility Model
 
-| Concern                        | Platform | Tenant | Notes                                                                                              |
-| ------------------------------ | :------: | :----: | -------------------------------------------------------------------------------------------------- |
-| CSI driver lifecycle           |    ✅    |        | `aws-ebs-csi-driver` installed as an EKS-managed add-on with Pod Identity.                         |
-| StorageClass definitions       |    ✅    |        | `gp3` (default) and `gp3-iops`, GitOps-managed under `argocd/platform/storage/`.                   |
-| PVC creation, sizing, mounting |          |   ✅   | Tenants declare PVCs with a `storageClassName` and access mode.                                    |
-| Volume expansion               |          |   ✅   | Enabled at the StorageClass level; tenants patch PVC `spec.resources.requests.storage`.            |
-| Backup / snapshot policy       |          |   ✅   | Tenants own their `VolumeSnapshot` schedule; platform ships the CSI snapshotter only if requested. |
+| Concern                        | Platform | Tenant | Notes                                                                                    |
+| ------------------------------ | :------: | :----: | ---------------------------------------------------------------------------------------- |
+| CSI driver lifecycle           |    ✅    |        | `aws-ebs-csi-driver` installed as an EKS-managed add-on with Pod Identity.               |
+| StorageClass definitions       |    ✅    |        | `gp3` (default) and `gp3-iops`, GitOps-managed under `argocd/platform-capabilities/storage/`. |
+| EBS tagging for cost attribution |  ✅    |        | Both StorageClasses tag every volume with `Namespace`, `PVCName`, `Cluster`; enables per-tenant cost breakdown in AWS Cost Explorer. |
+| PVC creation, sizing, mounting |          |   ✅   | Tenants declare PVCs with a `storageClassName` and access mode.                          |
+| Volume expansion               |          |   ✅   | Enabled at the StorageClass level; tenants patch PVC `spec.resources.requests.storage`.  |
 
 ---
 
 ## Block Storage — StorageClass Matrix
 
-| Class             | Provisioner       | Type | IOPS / Throughput               | Reclaim  | Binding                | Expansion | Use                                                                                               |
-| ----------------- | ----------------- | ---- | ------------------------------- | -------- | ---------------------- | :-------: | ------------------------------------------------------------------------------------------------- |
-| `gp3` _(default)_ | `ebs.csi.aws.com` | gp3  | AWS defaults (3000 / 125 MiB/s) | `Delete` | `WaitForFirstConsumer` |    ✅     | Stateless caches, scratch space, general-purpose stateful workloads.                              |
-| `gp3-iops`        | `ebs.csi.aws.com` | gp3  | 10 000 IOPS / 500 MiB/s         | `Retain` | `WaitForFirstConsumer` |    ✅     | Databases, WALs, write-heavy stateful workloads. `Retain` protects data on accidental PVC delete. |
+| Class             | Provisioner       | Type | IOPS / Throughput                     | Reclaim  | Binding                | Expansion | Use                                                                                               |
+| ----------------- | ----------------- | ---- | ------------------------------------- | -------- | ---------------------- | :-------: | ------------------------------------------------------------------------------------------------- |
+| `gp3` _(default)_ | `ebs.csi.aws.com` | gp3  | not set — AWS defaults (3000 / 125 MiB/s) | `Delete` | `WaitForFirstConsumer` |    ✅     | Stateless caches, scratch space, general-purpose stateful workloads.                              |
+| `gp3-iops`        | `ebs.csi.aws.com` | gp3  | `iops: 10000` / `throughput: 500`     | `Retain` | `WaitForFirstConsumer` |    ✅     | Databases, WALs, write-heavy stateful workloads. `Retain` protects data on accidental PVC delete. |
 
 **Notes:**
 
@@ -89,7 +91,7 @@ spec:
 **Expand a volume** (tenant self-service, StorageClass has `allowVolumeExpansion: true`):
 
 ```sh
-kubectl patch pvc postgres-data \
+kubectl patch pvc postgres-data -n <ns> \
   -p '{"spec":{"resources":{"requests":{"storage":"200Gi"}}}}'
 # pod must be restarted for the filesystem to grow
 ```

@@ -17,6 +17,12 @@ Tenants ship one `HTTPRoute` and get a routable, TLS-terminated hostname — no 
 
 Data path: `client → NLB → shared Istio Gateway → HTTPRoute → tenant Service → ztunnel-encrypted pod`.
 
+**Encryption:** TLS terminates at the Gateway on port 443 (wildcard cert); east-west traffic between pods is re-encrypted by ambient mesh (ztunnel), so every hop is encrypted end-to-end.
+
+**Load balancer:** the Gateway provisions a **NLB** via ALBC. In the yaml this is expressed as `aws-load-balancer-type: external` plus `nlb-target-type: ip` — the modern ALBC annotation pair for NLBs.
+
+**Port 80 listener:** exposed for ACME HTTP-01 fallback only. Tenant `HTTPRoute`s should bind to the `https` (443) listener; HTTP → HTTPS redirect is **not** enforced today (see [Limitations](../../README.md#limitations--roadmap)).
+
 | Concern       | Tooling                                                | Key resource                                                              |
 | ------------- | ------------------------------------------------------ | ------------------------------------------------------------------------- |
 | Ingress       | Gateway API + Istio ambient                            | Shared `Gateway istio-ingress/istio-ingress` (`gatewayClassName: istio`)  |
@@ -25,7 +31,9 @@ Data path: `client → NLB → shared Istio Gateway → HTTPRoute → tenant Ser
 | DNS           | external-dns → Route 53                                | Reconciled from `HTTPRoute.spec.hostnames`                                |
 | East-west     | Istio ambient (ztunnel)                                | mTLS via namespace label `istio.io/dataplane-mode: ambient`               |
 
-Manifests: [argocd/platform/networking/](../../argocd/platform/networking/), [istio-gateway/](../../argocd/platform/networking/istio-gateway/), [cert-manager-resources/](../../argocd/platform/security/cert-manager-resources/).
+Manifests: [argocd/platform-capabilities/networking/](../../argocd/platform-capabilities/networking/), [istio-gateway/](../../argocd/platform-capabilities/networking/istio-gateway/), [cert-manager-resources/](../../argocd/platform-capabilities/security/cert-manager-resources/).
+
+**Bootstrap ordering:** ALBC (wave `40`) → Istio base / CNI / istiod / ztunnel → Gateway + wildcard Certificate → external-dns. A tenant `HTTPRoute` requires the full chain to be green — if any wave is stuck, walk the chain in this order.
 
 ---
 
@@ -109,8 +117,8 @@ Drift here has a wide blast radius: a broken ALBC means **no NLB → no Gateway 
 
 | Where                                                                              | Field                               | Must match                                              |
 | ---------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------- |
-| [albc.yaml](../../argocd/platform/networking/albc.yaml)                            | `clusterName`, `vpcId`, `region`    | EKS cluster name, VPC ID (`module.vpc`), cluster region |
-| [istio-gateway/gateway.yaml](../../argocd/platform/networking/istio-gateway/gateway.yaml) | `aws-load-balancer-name` annotation | EKS cluster name (used by ALBC for tag discovery)       |
+| [albc.yaml](../../argocd/platform-capabilities/networking/albc.yaml)                            | `clusterName`, `vpcId`, `region`    | EKS cluster name, VPC ID (`module.vpc`), cluster region |
+| [istio-gateway/gateway.yaml](../../argocd/platform-capabilities/networking/istio-gateway/gateway.yaml) | `aws-load-balancer-name` annotation | EKS cluster name (used by ALBC for tag discovery)       |
 
 Quick check after any Terraform change:
 

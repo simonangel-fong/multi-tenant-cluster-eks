@@ -176,12 +176,18 @@ Onboarding a new team takes **3 pieces of info and 1 JSON file**.
 - [Compute](docs/tenant/compute.md)
 - [Network](docs/tenant/network.md)
 
-**Platform runbooks** — read to operate the cluster.
+**Platform runbooks** — read to operate a live cluster.
 
 - [Compute](docs/platform/compute.md)
 - [Storage](docs/platform/storage.md)
 - [Networking](docs/platform/networking.md)
 - [Security](docs/platform/security.md)
-- [Tenant onboarding](docs/platform/onboarding.md)
+- [Onboarding a tenant](docs/platform/onboarding.md)
+
+**Design & implementation** — read to understand how the project is built.
+
+- [IaC with Terraform](docs/dev/01-infra.md)
+- [GitOps with ArgoCD](docs/dev/02-argocd.md)
+- [Capabilities](docs/dev/03-capabilities.md)
 
 ---

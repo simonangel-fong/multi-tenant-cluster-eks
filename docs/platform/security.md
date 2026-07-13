@@ -26,7 +26,9 @@ The platform ships secrets vending, workload identity, admission control, and me
 | Network policy    | VPC CNI NetworkPolicy + Istio AuthorizationPolicy | Data plane                           |
 | Resource fairness | `ResourceQuota` + `LimitRange`                    | Admission                            |
 
-Manifests: [argocd/platform/security/](../../argocd/platform/security/) — ESO ([eso-resources/](../../argocd/platform/security/eso-resources/)), cert-manager ([cert-manager-resources/](../../argocd/platform/security/cert-manager-resources/)), Kyverno ([kyverno-policies/](../../argocd/platform/security/kyverno-policies/)).
+Manifests: [argocd/platform-capabilities/security/](../../argocd/platform-capabilities/security/) — ESO ([eso-resources/](../../argocd/platform-capabilities/security/eso-resources/)), cert-manager ([cert-manager-resources/](../../argocd/platform-capabilities/security/cert-manager-resources/)), Kyverno ([kyverno-policies/](../../argocd/platform-capabilities/security/kyverno-policies/)).
+
+**Bootstrap ordering:** ESO, cert-manager, and Kyverno controllers install at wave `30`; their `ClusterSecretStore` / `ClusterIssuer` / `ClusterPolicy` sets follow at waves `31`–`33`. Kyverno policies land last so tenant workloads aren't rejected before their platform prerequisites (secrets, certs) are ready.
 
 ---
 
@@ -49,18 +51,20 @@ Manifests: [argocd/platform/security/](../../argocd/platform/security/) — ESO 
 
 ## Isolation Model
 
-| Layer        | Mechanism                                      | What it stops                                                          |
-| ------------ | ---------------------------------------------- | ---------------------------------------------------------------------- |
-| Namespace    | Kubernetes RBAC                                | Tenant A cannot `get/list/patch` Tenant B's objects.                   |
-| Network (L3) | NetworkPolicy — default deny + selective allow | Tenant A pods cannot open TCP/UDP to Tenant B pods.                    |
-| Network (L4) | Istio ambient + `PeerAuthentication: STRICT`   | On-cluster attacker cannot read pod-to-pod traffic; plaintext refused. |
-| Resources    | `ResourceQuota` + `LimitRange`                 | Tenant A cannot starve Tenant B on CPU / memory / PVC storage.         |
+**Trust model:** soft multi-tenancy — trusted internal teams isolated by Namespace RBAC, NetworkPolicy, mTLS, and Kyverno. Not designed for hostile-tenant workloads (no gVisor / Kata / vCluster).
+
+| Layer            | Mechanism                                      | What it stops                                                                     |
+| ---------------- | ---------------------------------------------- | --------------------------------------------------------------------------------- |
+| Namespace        | Kubernetes RBAC                                | Tenant A cannot `get/list/patch` Tenant B's objects.                              |
+| Network (L3/L4)  | NetworkPolicy — default deny + selective allow | Tenant A pods cannot open TCP/UDP to Tenant B pods.                               |
+| Transport / mTLS | Istio ambient + `PeerAuthentication: STRICT`   | On-cluster attacker cannot read plaintext between mesh-enrolled namespaces.       |
+| Resources        | `ResourceQuota` + `LimitRange`                 | Tenant A cannot starve Tenant B on CPU / memory / PVC storage.                    |
 
 ---
 
 ## Kyverno Policy Set
 
-Every policy excludes platform namespaces (`kube-system`, `karpenter`, `istio-system`, `argocd`, `cert-manager`, `external-secrets`, `monitoring`) and applies to tenant namespaces only. Source: [argocd/platform/security/kyverno-policies/](../../argocd/platform/security/kyverno-policies/).
+Every policy excludes platform namespaces and applies to tenant namespaces only. The authoritative exclusion list lives in each policy's `spec.rules[].exclude.any.resources.namespaces` — see the policy source rather than enumerating here: [argocd/platform-capabilities/security/kyverno-policies/](../../argocd/platform-capabilities/security/kyverno-policies/).
 
 | Policy                              | Enforces                                                                             |
 | ----------------------------------- | ------------------------------------------------------------------------------------ |

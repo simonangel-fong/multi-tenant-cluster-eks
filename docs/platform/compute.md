@@ -22,8 +22,10 @@ The platform ships out-of-the-box compute autoscaling via **Karpenter**. Tenants
 ## Implementation
 
 1. **Enable Karpenter in AWS** — SQS interruption queue, IAM roles for the controller and nodes, subnet/SG discovery tags ([infra/12-eks-karpenter.tf](../../infra/12-eks-karpenter.tf)).
-2. **Install the Karpenter controller** as a platform Application ([argocd/platform/compute/karpenter.yaml](../../argocd/platform/compute/karpenter.yaml)).
-3. **Publish `NodePool` + `EC2NodeClass` per workload class** ([argocd/platform/compute/karpenter-nodes/](../../argocd/platform/compute/karpenter-nodes/)).
+2. **Install the Karpenter controller** as a platform Application ([argocd/platform-capabilities/compute/karpenter.yaml](../../argocd/platform-capabilities/compute/karpenter.yaml)).
+3. **Publish `NodePool` + `EC2NodeClass` per workload class** ([argocd/platform-capabilities/compute/karpenter-nodes/](../../argocd/platform-capabilities/compute/karpenter-nodes/)).
+
+Bootstrap ordering: the compute Application syncs at wave `10` inside `02-platform-capabilities`, which itself depends on `01-platform-init` (wave 0). Karpenter cannot come up until platform-init is green.
 
 ---
 
@@ -32,17 +34,14 @@ The platform ships out-of-the-box compute autoscaling via **Karpenter**. Tenants
 - Workload classes are identified by the label `workload-class=<class>`.
 - Tainted classes require a matching toleration; tenants never reference instance families or sizes.
 
-| Class      | Label                     | Provisioned by                     | Taint                                | Capacity         | Instance selection           | Purpose                                                          |
-| ---------- | ------------------------- | ---------------------------------- | ------------------------------------ | ---------------- | ---------------------------- | ---------------------------------------------------------------- |
-| `platform` | `workload-class=platform` | EKS managed node group + Karpenter | `workload-class=platform:NoSchedule` | on-demand        | `t3.xlarge` (bootstrap), `m` | Bootstraps the cluster; runs Karpenter, Istio, ArgoCD, ESO, etc. |
-| `general`  | `workload-class=general`  | Karpenter                          | none                                 | on-demand + spot | families `t`,`m`; gen > 3    | Default class for stateless tenant workloads.                    |
-| `database` | `workload-class=database` | Karpenter                          | `workload-class=database:NoSchedule` | on-demand only   | families `m`,`r`; gen > 5    | Stateful tenant workloads: databases, queues, caches with PVCs.  |
-| `gpu`      | `workload-class=gpu`      | Karpenter                          | `workload-class=gpu:NoSchedule`      | on-demand only   | families `g5`,`g6`           | GPU-backed tenant workloads (inference, training).               |
+| Class      | Label                     | Provisioned by         | Taint                                | Capacity         | Instance selection           | Purpose                                                          |
+| ---------- | ------------------------- | ---------------------- | ------------------------------------ | ---------------- | ---------------------------- | ---------------------------------------------------------------- |
+| `platform` | `workload-class=platform` | EKS managed node group | `workload-class=platform:NoSchedule` | on-demand        | `t3.xlarge` (bootstrap)      | Bootstraps the cluster; runs Karpenter, Istio, ArgoCD, ESO, etc. |
+| `general`  | `workload-class=general`  | Karpenter              | none                                 | on-demand + spot | families `t`,`m`; gen > 3    | Default class for stateless tenant workloads.                    |
+| `database` | `workload-class=database` | Karpenter              | `workload-class=database:NoSchedule` | on-demand only   | families `m`,`r`; gen > 5    | Stateful tenant workloads: databases, queues, caches with PVCs.  |
+| `gpu`      | `workload-class=gpu`      | Karpenter              | `workload-class=gpu:NoSchedule`      | on-demand only   | families `g5`,`g6`           | GPU-backed tenant workloads (inference, training).               |
 
-The `platform` class is deliberately hybrid:
-
-- **EKS managed node group** provides the always-on capacity Karpenter itself needs to run. Tainted to prevent general workloads; add-ons like `coredns` and `metrics-server` carry the matching toleration.
-- **Karpenter `platform` NodePool** scales the class for the remaining platform components.
+The `platform` class is an **EKS managed node group** (Terraform-managed) — it provides the always-on capacity Karpenter itself needs to run. Tainted to prevent tenant workloads; add-ons like `coredns`, `metrics-server`, and Karpenter carry the matching toleration. Tenants cannot select the `platform` class (blocked by Kyverno).
 
 **NodePool limits** (guardrails against runaway scale):
 
@@ -153,11 +152,11 @@ Several fields in the compute Applications are hardcoded and must equal the reso
 
 | Where                                                     | Field                                                                        | Must match                                    |
 | --------------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------- |
-| `argocd/platform/compute/karpenter.yaml` (Helm values)    | `settings.clusterName`                                                       | EKS cluster name (`multi-tenant-eks-dev`)     |
-| `argocd/platform/compute/karpenter.yaml` (Helm values)    | `settings.interruptionQueue`                                                 | SQS queue (`Karpenter-multi-tenant-eks-dev`)  |
-| `argocd/platform/compute/karpenter.yaml` (Helm values)    | `nodeSelector.karpenter.sh/controller: "true"`                               | Label present on the bootstrap node group     |
-| `argocd/platform/compute/karpenter-nodes/*-ec2nodeclass.yaml` | `spec.role`                                                                  | Karpenter node IAM role (`multi-tenant-eks-dev-karpenter-node`) |
-| `argocd/platform/compute/karpenter-nodes/*-ec2nodeclass.yaml` | `subnetSelectorTerms` / `securityGroupSelectorTerms` tag `karpenter.sh/discovery` | EKS cluster name                              |
+| `argocd/platform-capabilities/compute/karpenter.yaml` (Helm values)    | `settings.clusterName`                                                       | EKS cluster name (`multi-tenant-eks-dev`)     |
+| `argocd/platform-capabilities/compute/karpenter.yaml` (Helm values)    | `settings.interruptionQueue`                                                 | SQS queue (`Karpenter-multi-tenant-eks-dev`)  |
+| `argocd/platform-capabilities/compute/karpenter.yaml` (Helm values)    | `nodeSelector.karpenter.sh/controller: "true"`                               | Label present on the bootstrap node group     |
+| `argocd/platform-capabilities/compute/karpenter-nodes/*-ec2nodeclass.yaml` | `spec.role`                                                                  | Karpenter node IAM role (`multi-tenant-eks-dev-karpenter-node`) |
+| `argocd/platform-capabilities/compute/karpenter-nodes/*-ec2nodeclass.yaml` | `subnetSelectorTerms` / `securityGroupSelectorTerms` tag `karpenter.sh/discovery` | EKS cluster name                              |
 
 Quick check after any Terraform change:
 
