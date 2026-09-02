@@ -115,7 +115,7 @@ code {
 
 /* -------- images: uniform width, left-aligned -------- */
 .site-figure {
-  max-width: 720px;         /* consistent width across the page */
+  max-width: 1024px;         /* consistent width across the page */
   margin-left: 0;           /* left-aligned, not centered */
   margin-right: 0;
 }
@@ -185,3 +185,38 @@ code {
 
 /* -------- blockquote question -------- */
 .cs-question { margin: 0 0 1rem 0; font-size: 1.05rem; }
+
+/* -------- footer -------- */
+.site-footer {
+  background: var(--bs-tertiary-bg);
+  padding: 2rem 0;
+  font-size: .9rem;
+  color: var(--bs-secondary-color);
+}
+.site-footer > .container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem 1.5rem;
+}
+@media (min-width: 992px) {
+  .site-footer > .container { padding-inline: 4rem; }
+}
+@media (min-width: 1400px) {
+  .site-footer > .container { padding-inline: 6rem; }
+}
+.site-footer a {
+  color: var(--bs-secondary-color);
+  text-decoration: none;
+  transition: color .15s ease-in-out;
+}
+.site-footer a:hover,
+.site-footer a:focus-visible { color: var(--bs-primary); }
+.site-footer-copy a { color: var(--bs-body-color); }
+.site-footer-top span { display: inline-block; transition: transform .15s ease-in-out; }
+.site-footer-top:hover span { transform: translateY(-2px); }
+
+@media (max-width: 575.98px) {
+  .site-footer > .container { justify-content: center; text-align: center; }
+}

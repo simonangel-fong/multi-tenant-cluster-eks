@@ -3,28 +3,35 @@ layout: none
 ---
 <!doctype html>
 <html lang="en" data-bs-theme="dark">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Multi-tenant Cluster with EKS</title>
-  <meta name="description" content="A multi-tenant EKS platform: one cluster, many teams, safe by default. Terraform provisions AWS; ArgoCD delivers everything above.">
+  <link rel="icon" type="image/x-icon" href="assets/img/icon.png">
+  <meta name="description"
+    content="A multi-tenant EKS platform: one cluster, many teams, safe by default. Terraform provisions AWS; ArgoCD delivers everything above.">
 
   <!-- Bootstrap 5.3 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/site.css">
 </head>
+
 <body id="top">
 
   <!-- ================ NAV ================ -->
   <nav class="navbar navbar-expand-md sticky-top border-bottom">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="#top">EKS Multi-tenant</a>
+      <a class="navbar-brand fw-bold" href="#top">
+        <img src="assets/img/icon.png" alt="Logo" width="35" height="35" class="d-inline-block align-text-top">
+        EKS Multi-tenant
+      </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#primaryNav"
-              aria-controls="primaryNav" aria-expanded="false" aria-label="Toggle navigation">
+        aria-controls="primaryNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="primaryNav">
@@ -34,9 +41,8 @@ layout: none
           <li class="nav-item"><a class="nav-link" href="#demo">Tenant Onboarding</a></li>
           <li class="nav-item"><a class="nav-link" href="#summary">Summary</a></li>
           <li class="nav-item ms-md-2">
-            <a class="btn btn-outline-light btn-sm"
-               href="https://github.com/simonangel-fong/eks-multi-tenant-cluster"
-               target="_blank" rel="noopener">GitHub</a>
+            <a class="btn btn-outline-light btn-sm" href="https://github.com/simonangel-fong/eks-multi-tenant-cluster"
+              target="_blank" rel="noopener">GitHub</a>
           </li>
         </ul>
       </div>
@@ -72,8 +78,9 @@ layout: none
                   <li>Kyverno</li>
                 </ul>
 
-                <a class="btn btn-light btn-lg" href="https://github.com/simonangel-fong/eks-multi-tenant-cluster"
-                   target="_blank" rel="noopener">GitHub Repository</a>
+                <a class="btn btn-outline-light btn-lg"
+                  href="https://github.com/simonangel-fong/eks-multi-tenant-cluster" target="_blank"
+                  rel="noopener">GitHub Repository</a>
               </div>
             </div>
           </div>
@@ -86,24 +93,25 @@ layout: none
       <div class="container text-start">
         <h2 class="fw-bold mb-4">Business Challenge &amp; Solution</h2>
 
-        <p class="lead text-body-secondary mb-3" style="max-width: 50rem;">
+        <p class="lead text-body-secondary mb-3" style="max-width: 60rem;">
           For a small or mid-size enterprise, giving every product team its own Kubernetes cluster
           drives up cost, slows onboarding, and leaves governance inconsistent.
         </p>
 
         <blockquote class="cs-question border-start border-4 border-primary bg-primary-subtle
-                          ps-3 py-3 rounded-end fw-semibold mb-3" style="max-width: 50rem;">
+                          ps-3 py-3 rounded-end fw-semibold mb-3" style="max-width: 60rem;">
           How can one cluster serve many teams while keeping workloads isolated, secure, and easy to operate?
         </blockquote>
 
-        <p class="mb-5" style="max-width: 50rem;">
+        <p class="fs-5 mb-5" style="max-width: 60rem;">
           This project answers the challenge with a <code>multi-tenant cluster</code> on <code>AWS EKS</code>.
         </p>
 
         <h3 class="h5 fw-semibold mb-3">Benefits</h3>
-        <ul class="cs-benefits list-unstyled mb-0" style="max-width: 50rem;">
+        <ul class="fs-5 cs-benefits list-unstyled mb-0" style="max-width: 60rem;">
           <li class="mb-2"><strong>Lower cost.</strong> Pooled capacity replaces per-team over-provisioning.</li>
-          <li class="mb-2"><strong>One platform to run.</strong> One control plane, one upgrade path, one security baseline.</li>
+          <li class="mb-2"><strong>One platform to run.</strong> One control plane, one upgrade path, one security
+            baseline.</li>
           <li class="mb-2"><strong>Consistent governance.</strong> The same guardrails apply to every tenant.</li>
           <li class="mb-2"><strong>Fast onboarding.</strong> A new team goes live in minutes, driven by GitOps.</li>
         </ul>
@@ -114,18 +122,18 @@ layout: none
     <section id="architecture" class="py-5 py-lg-6">
       <div class="container text-start">
         <h2 class="fw-bold mb-2">Architecture &amp; Capabilities</h2>
-        <p class="lead text-body-secondary mb-4" style="max-width: 50rem;">
+        <p class="lead text-body-secondary mb-4" style="max-width: 60rem;">
           Terraform provisions the AWS foundation. ArgoCD bootstraps everything above the API server via GitOps.
         </p>
 
         <figure class="figure d-block mb-4 site-figure">
-          <img src="img/architecture.png" alt="High-level architecture diagram"
-               class="figure-img img-fluid rounded">
+          <img src="img/architecture.png" alt="High-level architecture diagram" class="figure-img img-fluid rounded">
           <figcaption class="figure-caption text-body-secondary mt-3">
             <ol class="ps-3 mb-0">
               <li><strong>Terraform</strong> provisions the AWS foundation (VPC, EKS, IAM, Route53).</li>
               <li><strong>ArgoCD</strong> bootstraps platform capabilities on the cluster.</li>
-              <li>Per-tenant <strong>AppProjects</strong> and <strong>ApplicationSets</strong> sync each team&rsquo;s own manifest repo.</li>
+              <li>Per-tenant <strong>AppProjects</strong> and <strong>ApplicationSets</strong> sync each team&rsquo;s
+                own manifest repo.</li>
             </ol>
           </figcaption>
         </figure>
@@ -168,7 +176,7 @@ layout: none
         <h3 class="h5 fw-semibold mb-3">Shared responsibility model</h3>
         <figure class="figure d-block site-figure">
           <img src="img/responsibility_model.png" alt="Shared responsibility model between platform and tenants"
-               class="figure-img img-fluid rounded">
+            class="figure-img img-fluid rounded">
           <figcaption class="figure-caption text-body-secondary mt-3">
             A clear boundary: platform owns the guardrails; tenants own their workloads.
           </figcaption>
@@ -180,13 +188,13 @@ layout: none
     <section id="demo" class="py-5 py-lg-6 bg-body-tertiary">
       <div class="container text-start">
         <h2 class="fw-bold mb-2">Tenant Onboarding</h2>
-        <p class="lead text-body-secondary mb-4" style="max-width: 50rem;">
+        <p class="lead text-body-secondary mb-4" style="max-width: 60rem;">
           Onboarding a new team takes <strong class="text-body">3 pieces of info</strong>
           and <strong class="text-body">1 JSON file</strong>. GitOps handles the rest.
         </p>
 
         <h3 class="h5 fw-semibold mb-3">The onboarding recipe</h3>
-        <ul class="list-unstyled mb-4" style="max-width: 50rem;">
+        <ul class="list-unstyled mb-4" style="max-width: 60rem;">
           <li class="mb-2">
             <strong>Tenant provides.</strong>
             Three fields: <code>name</code>, <code>sourceRepo</code>, <code>manifestPath</code>.
@@ -201,16 +209,16 @@ layout: none
           </li>
         </ul>
 
-        <figure class="demo-code mb-4" style="max-width: 50rem;">
+        <figure class="demo-code mb-4" style="max-width: 60rem;">
           <figcaption class="demo-code-caption">tenants/team-a.json</figcaption>
-<pre class="mb-0"><code>{
+          <pre class="mb-0"><code>{
   "name": "team-a",
   "sourceRepo": "https://github.com/simonangel-fong/eks-multi-tenant-cluster",
   "manifestPath": "demo-app/team-a"
 }</code></pre>
         </figure>
 
-        <div class="alert alert-primary demo-ttl mb-5" style="max-width: 50rem;">
+        <div class="alert alert-primary demo-ttl mb-5" style="max-width: 60rem;">
           <strong>Time to live URL:</strong>
           ~3 min for stateless · ~2 min additional for stateful (PVC + database node).
         </div>
@@ -221,18 +229,17 @@ layout: none
             <h3 class="h5 fw-semibold mb-0">Sample Demo: Team A, Stateless App</h3>
             <span class="badge text-bg-primary">Team A</span>
           </div>
-          <p class="text-body-secondary mb-3" style="max-width: 50rem;">
+          <p class="text-body-secondary mb-3" style="max-width: 60rem;">
             A simple nginx web app deployed with plain Kubernetes manifests.
           </p>
-          <dl class="row mb-3 gy-1" style="max-width: 50rem;">
+          <dl class="row mb-3 gy-1" style="max-width: 60rem;">
             <dt class="col-sm-3 text-body-secondary fw-normal small text-uppercase">Node class</dt>
             <dd class="col-sm-9 mb-0"><code>general</code></dd>
             <dt class="col-sm-3 text-body-secondary fw-normal small text-uppercase">Public URL</dt>
             <dd class="col-sm-9 mb-0"><code>team-a.arguswatcher.net</code></dd>
           </dl>
           <figure class="figure d-block mb-0 site-figure">
-            <img src="img/team-a.png" alt="Team A stateless web app running"
-                 class="figure-img img-fluid rounded mb-0">
+            <img src="img/team-a.png" alt="Team A stateless web app running" class="figure-img img-fluid rounded mb-0">
           </figure>
         </div>
 
@@ -242,18 +249,17 @@ layout: none
             <h3 class="h5 fw-semibold mb-0">Sample Demo: Team B, Stateful App</h3>
             <span class="badge text-bg-success">Team B</span>
           </div>
-          <p class="text-body-secondary mb-3" style="max-width: 50rem;">
+          <p class="text-body-secondary mb-3" style="max-width: 60rem;">
             A full-stack to-do app packaged as a Helm chart with a persistent database.
           </p>
-          <dl class="row mb-3 gy-1" style="max-width: 50rem;">
+          <dl class="row mb-3 gy-1" style="max-width: 60rem;">
             <dt class="col-sm-3 text-body-secondary fw-normal small text-uppercase">Node classes</dt>
             <dd class="col-sm-9 mb-0"><code>general</code> · <code>database</code></dd>
             <dt class="col-sm-3 text-body-secondary fw-normal small text-uppercase">Public URL</dt>
             <dd class="col-sm-9 mb-0"><code>team-b.arguswatcher.net</code></dd>
           </dl>
           <figure class="figure d-block mb-0 site-figure">
-            <img src="img/team-b.png" alt="Team B stateful to-do app running"
-                 class="figure-img img-fluid rounded mb-0">
+            <img src="img/team-b.png" alt="Team B stateful to-do app running" class="figure-img img-fluid rounded mb-0">
           </figure>
         </div>
       </div>
@@ -277,13 +283,14 @@ layout: none
               <li class="mb-3">
                 <strong class="d-block">Clear ownership</strong>
                 <span class="text-body-secondary">
-                  Focus on platform capabilities and the underlying infrastructure. Nothing tenant-specific.
+                  Focus on <code>platform capabilities</code> and the underlying infrastructure. Nothing
+                  tenant-specific.
                 </span>
               </li>
               <li class="mb-3">
                 <strong class="d-block">Lower operational overhead</strong>
                 <span class="text-body-secondary">
-                  Run one cluster instead of one per team. One upgrade path, one security baseline.
+                  Run <code>one cluster</code> instead of one per team. One upgrade path, one security baseline.
                 </span>
               </li>
               <li class="mb-3">
@@ -303,7 +310,8 @@ layout: none
               <li class="mb-3">
                 <strong class="d-block">Clear ownership</strong>
                 <span class="text-body-secondary">
-                  Focus on the application. Manifests live in the tenant&rsquo;s own Git repo; GitOps keeps the cluster in sync.
+                  Focus on the <code>application</code>. Manifests live in the tenant&rsquo;s own Git repo; GitOps keeps
+                  the cluster in sync.
                 </span>
               </li>
               <li class="mb-3">
@@ -315,7 +323,8 @@ layout: none
               <li class="mb-3">
                 <strong class="d-block">Simple onboarding</strong>
                 <span class="text-body-secondary">
-                  Three fields (<code>name</code>, <code>sourceRepo</code>, <code>manifestPath</code>). App is live in minutes.
+                  Three fields (<code>name</code>, <code>sourceRepo</code>, <code>manifestPath</code>). App is live in
+                  minutes.
                 </span>
               </li>
             </ul>
@@ -326,10 +335,21 @@ layout: none
 
   </main>
 
+  <!-- footer -->
+  <footer class="site-footer border-top">
+    <div class="container">
+      <span class="site-footer-copy">
+        &copy; 2026 <a href="https://www.arguswatcher.net" target="_blank" rel="noopener">ArgusWatcher</a>
+      </span>
+      <a href="#top" class="site-footer-top">Back to top <span aria-hidden="true">&uarr;</span></a>
+    </div>
+  </footer>
+
   <!-- Bootstrap JS bundle (for navbar collapse) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-          crossorigin="anonymous"></script>
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
   <script src="assets/js/site.js" defer></script>
 </body>
+
 </html>
